@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 
 const {
   SUPABASE_URL,
@@ -10,6 +11,18 @@ const {
 
 // Fast port – ignorerer PORT i .env med vilje (3000 er opptatt)
 const PORT = 3500;
+
+// ── Daglig grense på leads-henting ──────────────────────────────
+const DAGLIG_GRENSE = 10;
+const TELLER_FIL = path.join(__dirname, 'hent-teller.json');
+const lokalDato = () => new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD lokal tid
+function lesTeller() {
+  try { return JSON.parse(fs.readFileSync(TELLER_FIL, 'utf8')); }
+  catch { return { dato: '', antall: 0 }; }
+}
+function skrivTeller(t) {
+  try { fs.writeFileSync(TELLER_FIL, JSON.stringify(t)); } catch { /* ignorer */ }
+}
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error('❌ Mangler SUPABASE_URL eller SUPABASE_SERVICE_KEY i .env');
@@ -163,6 +176,17 @@ app.post('/api/hent-leads', async (_req, res) => {
     if (!GOOGLE_PLACES_API_KEY)
       return res.status(400).json({ feil: 'GOOGLE_PLACES_API_KEY mangler i .env' });
 
+    // 0. Daglig grense: maks DAGLIG_GRENSE kjøringer per dag
+    const idag = lokalDato();
+    let teller = lesTeller();
+    if (teller.dato !== idag) teller = { dato: idag, antall: 0 };
+    if (teller.antall >= DAGLIG_GRENSE) {
+      return res.json({
+        grense: true, igjen: 0,
+        melding: `Du har brukt opp dagens ${DAGLIG_GRENSE} hentinger. Prøv igjen i morgen.`
+      });
+    }
+
     // 1. Hvor er vi i rotasjonen?
     const state = (await sbSelect('crm_state?id=eq.1&select=*'))[0] || { bransje_idx: 0, by_idx: 0 };
     const bransje = BRANSJER[state.bransje_idx] || BRANSJER[0];
@@ -184,6 +208,10 @@ app.post('/api/hent-leads', async (_req, res) => {
     }
 
     const funnet = sj.results || [];
+
+    // Tell denne kjøringen (kun etter at søket faktisk gikk gjennom)
+    teller.antall += 1;
+    skrivTeller(teller);
 
     // 3. Dedup mot det som allerede ligger inne
     const eks = await sbSelect('crm_leads?select=name');
@@ -228,6 +256,8 @@ app.post('/api/hent-leads', async (_req, res) => {
       funnet: funnet.length,
       lagt_til: lagtInn.length,
       neste: `${BRANSJER[nBransje]} ${BYER[nBy]}`,
+      hoppet_over: utenFb,
+      igjen: DAGLIG_GRENSE - teller.antall,
       melding: `Søkte «${query}» — fant ${funnet.length}, la til ${lagtInn.length} med Facebook (hoppet over ${utenFb} uten).`
     });
   } catch (e) {
