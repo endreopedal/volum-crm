@@ -5,9 +5,11 @@ const path = require('path');
 const {
   SUPABASE_URL,
   SUPABASE_SERVICE_KEY,
-  GOOGLE_PLACES_API_KEY,
-  PORT = 3500
+  GOOGLE_PLACES_API_KEY
 } = process.env;
+
+// Fast port – ignorerer PORT i .env med vilje (3000 er opptatt)
+const PORT = 3500;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error('❌ Mangler SUPABASE_URL eller SUPABASE_SERVICE_KEY i .env');
