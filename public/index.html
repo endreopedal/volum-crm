@@ -1,174 +1,762 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Volum Leads-CRM</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="AI-CRM"/>
+<title>AI-CRM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #f4f5f7; --card: #fff; --ink: #1a1a1a; --muted: #6b7280;
-    --line: #e5e7eb; --accent: #ea580c; --accent2: #dc2626;
-    --ny: #3b82f6; --kontaktet: #7c3aed; --venter: #f59e0b; --booket: #16a765;
-  }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg); color: var(--ink); padding: 20px; }
-  header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
-  .logo { font-weight: 900; font-size: 22px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.5px; }
-  .spacer { flex: 1; }
-  input.search { height: 38px; padding: 0 14px; border: 1px solid var(--line);
-    border-radius: 10px; background: #fff; font-size: 14px; min-width: 200px; }
-  button { cursor: pointer; font-size: 14px; border-radius: 10px; border: 1px solid var(--line);
-    background: #fff; height: 38px; padding: 0 14px; font-weight: 600; }
-  button.primary { border: 0; color: #fff; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-  button.primary:disabled { opacity: .6; cursor: default; }
-  .toast { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; font-size: 14px;
-    background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
-  .toast.err { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
-  @media (max-width: 900px) { .board { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
-  .col { background: #eef0f3; border-radius: 14px; padding: 10px; min-height: 120px; }
-  .col h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .4px; margin: 4px 6px 10px;
-    display: flex; align-items: center; gap: 8px; color: var(--muted); }
-  .dot { width: 9px; height: 9px; border-radius: 50%; }
-  .count { margin-left: auto; background: #fff; border-radius: 20px; padding: 1px 9px;
-    font-size: 12px; color: var(--ink); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
-    padding: 11px 12px; margin-bottom: 9px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
-  .card .navn { font-weight: 700; font-size: 14px; margin-bottom: 5px; line-height: 1.3; }
-  .links { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-  .links a { font-size: 12px; text-decoration: none; padding: 3px 8px; border-radius: 7px;
-    background: #f3f4f6; color: #374151; border: 1px solid var(--line); }
-  .links a:hover { background: #e5e7eb; }
-  .tlf { font-size: 13px; color: var(--ink); margin-bottom: 8px; }
-  .tlf a { color: var(--accent2); text-decoration: none; font-weight: 600; }
-  .row { display: flex; gap: 6px; align-items: center; }
-  select { flex: 1; height: 32px; border-radius: 8px; border: 1px solid var(--line);
-    background: #fff; font-size: 13px; padding: 0 8px; }
-  .del { border: 0; background: transparent; color: #9ca3af; font-size: 16px; width: 30px; padding: 0; }
-  .del:hover { color: var(--accent2); }
-  .empty { color: #9ca3af; font-size: 13px; text-align: center; padding: 14px 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --or:#E8500A;--orl:#FF6B2B;--orp:#FFF0E8;
+  --re:#C0392B;
+  --g50:#F7F7F6;--g100:#EFEFED;--g200:#DDDDD9;
+  --g400:#9B9B94;--g600:#6B6B63;--g800:#2A2A26;--g900:#141410;
+  --gr:#1A9455;--grp:#E6F5EE;
+  --bl:#1A62C0;--blp:#E6EEF5;
+  --pu:#6A2DBB;--pup:#F0EAFA;
+  --max:520px;
+}
+html,body{height:100%;background:var(--g50);}
+@media(min-width:700px){body{background:#EEECEA;}}
+@media(min-width:700px){
+  .app-shell{max-width:var(--max);margin:0 auto;background:var(--g50);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.1);}
+}
+body{font-family:'DM Sans',sans-serif;color:var(--g900);-webkit-font-smoothing:antialiased;}
+button{cursor:pointer;border:none;font-family:inherit;background:none;}
+input,select,textarea{font-family:inherit;}
+.hs::-webkit-scrollbar{display:none;}.hs{-ms-overflow-style:none;scrollbar-width:none;}
+@keyframes fu{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes su{from{opacity:0;transform:translateY(100%);}to{opacity:1;transform:translateY(0);}}
+@keyframes sp{to{transform:rotate(360deg);}}
+.fu{animation:fu .22s ease forwards;}
+.su{animation:su .28s cubic-bezier(.16,1,.3,1) forwards;}
+.spin{animation:sp .7s linear infinite;}
+.card{background:white;border-radius:16px;border:1.5px solid var(--g200);box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.fi{width:100%;border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;font-size:14px;font-weight:500;color:var(--g900);background:white;outline:none;transition:border-color .15s,box-shadow .15s;}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(232,80,10,.12);}
+.ta{width:100%;border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;font-size:14px;font-weight:500;color:var(--g900);background:white;outline:none;resize:vertical;transition:border-color .15s;}
+.ta:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(232,80,10,.12);}
+.lbl{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--g400);margin-bottom:6px;}
+.bp{background:linear-gradient(135deg,var(--or),var(--re));color:white;font-weight:700;border-radius:10px;transition:opacity .15s,transform .1s;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;height:38px;padding:0 14px;font-size:13px;flex-shrink:0;}
+.bp:active{transform:scale(.97);opacity:.9;}.bp.wide{width:100%;height:42px;font-size:14px;padding:0 16px;}
+.bs{background:var(--g100);color:var(--g800);font-weight:700;border-radius:10px;transition:background .15s,transform .1s;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;height:38px;padding:0 14px;font-size:13px;flex-shrink:0;}.bs:hover{background:var(--g200);}
+.bs:active{transform:scale(.97);}.bs.wide{width:100%;height:42px;font-size:14px;padding:0 16px;}
+#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--g900);color:white;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9999;white-space:nowrap;}
+#toast.on{opacity:1;}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1.5px solid var(--g200);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:20;height:60px;}@media(min-width:700px){.bnav{left:50%;transform:translateX(-50%);width:var(--max);border-left:1.5px solid var(--g200);border-right:1.5px solid var(--g200);}}
+.nbtn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;font-size:9px;font-weight:700;letter-spacing:.4px;color:var(--g400);text-transform:uppercase;gap:3px;}
+.nbtn.on{color:var(--or);}
+.nbtn svg{width:20px!important;height:20px!important;}
+.msg-blk{background:var(--orp);border-left:3px solid var(--or);border-radius:8px;padding:10px 12px 10px 12px;font-size:13.5px;line-height:1.55;color:var(--g800);font-style:italic;margin-bottom:12px;position:relative;padding-right:70px;}
+.cpbtn{position:absolute;top:6px;right:6px;background:var(--or);color:white;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;font-style:normal;border:none;cursor:pointer;}
+.lvlbdg{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.3px;}
+.l1{background:var(--orp);color:var(--or);}
+.l2{background:#FEF0F0;color:var(--re);}
+.l3{background:var(--grp);color:var(--gr);}
+.l4{background:var(--pup);color:var(--pu);}
+.l5{background:#E6FAF5;color:#0D7A5F;}
+.tab-on{background:linear-gradient(135deg,var(--or),var(--re));color:white;box-shadow:0 2px 8px rgba(232,80,10,.3);}
+.tab-off{background:white;color:var(--g600);border:1.5px solid var(--g200);}
+.mo-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;}@media(min-width:700px){.mo-overlay{align-items:center;padding:20px;}}.mo-sheet{background:var(--g50);width:100%;max-width:460px;border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}@media(min-width:700px){.mo-sheet{border-radius:16px;}}
+.obtn{padding:9px 6px;border-radius:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;border:1.5px solid var(--g200);background:white;color:var(--g700);}
+.obtn.ob{background:var(--grp);border-color:var(--gr);color:var(--gr);}
+.obtn.os{background:var(--blp);border-color:var(--bl);color:var(--bl);}
+.obtn.ov{background:var(--orp);border-color:var(--or);color:var(--or);}
+.obtn.oi{background:#FEF0F0;border-color:var(--re);color:var(--re);}
+.scard{background:white;border-radius:14px;border:1.5px solid var(--g200);padding:14px 16px;}
+.snum{font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;color:var(--g900);line-height:1;}
+.slbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;}
+.msec{background:white;border-radius:14px;border:1.5px solid var(--g200);overflow:hidden;margin-bottom:12px;}
+.mhdr{padding:12px 14px;background:linear-gradient(135deg,var(--orp),white);border-bottom:1.5px solid var(--g200);display:flex;align-items:center;justify-content:space-between;}
+.mtxt{width:100%;min-height:80px;border:1.5px solid var(--g200);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.55;color:var(--g800);background:var(--g50);outline:none;resize:vertical;}
+.mtxt:focus{border-color:var(--or);background:white;box-shadow:0 0 0 3px rgba(232,80,10,.1);}
+.loader-full{position:fixed;inset:0;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:100;}
+.dot-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gr);margin-left:6px;vertical-align:middle;}
+.dot-badge.red{background:var(--re);}
+.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px;}
+.action-grid button{height:38px;font-size:13px;}
+.action-grid .span2{grid-column:span 2;width:100%;height:38px;font-size:13px;border:none;}
 </style>
 </head>
 <body>
-  <header>
-    <span class="logo">Volum Leads-CRM</span>
-    <span id="total" style="color:var(--muted);font-size:13px;"></span>
-    <span class="spacer"></span>
-    <input class="search" id="search" placeholder="Søk bedrift…" />
-    <button class="primary" id="hentBtn">＋ Hent flere leads</button>
-  </header>
+<div id="root"></div>
+<div id="toast"></div>
 
-  <div id="toast" class="toast" style="display:none"></div>
-  <div class="board" id="board"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback} = React;
 
-<script>
-const STATUSER = [
-  { navn: 'Ny',          farge: 'var(--ny)' },
-  { navn: 'Kontaktet',   farge: 'var(--kontaktet)' },
-  { navn: 'Venter',      farge: 'var(--venter)' },
-  { navn: 'Møte booket', farge: 'var(--booket)' },
-];
+// ── SUPABASE CONFIG ──
+const SUPABASE_URL = 'https://krawpaxzwygnvoueykcc.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtyYXdwYXh6d3lnbnZvdWV5a2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MjM3MzUsImV4cCI6MjA4OTQ5OTczNX0.pH5U-dIoV2net5qWD6sfp85UAYJHJC2evYqC-rd3Y0k';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let alle = [];
-let sok = '';
+// ── HELPERS ──
+const addWeekdays=(start,n)=>{let d=new Date(start),a=0;while(a<n){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)a++;}return d;};
+const fmtDate=d=>d instanceof Date?d.toISOString().split('T')[0]:d||'';
+const todayStr=()=>fmtDate(new Date());
+const toast=msg=>{const el=document.getElementById('toast');if(!el)return;el.textContent=msg;el.classList.add('on');setTimeout(()=>el.classList.remove('on'),2000);};
 
-const api = (url, opts) => fetch(url, opts).then(r => r.json());
+const DEFAULT_MSGS={
+  'Første kontakt':'Hei {name}! Ser at dere er aktive på sosiale medier. Vi hjelper bedrifter med å bli synlige i AI-søk som ChatGPT og Gemini – uten at dere trenger å gjøre noe selv. Jeg sjekket akkurat hva ChatGPT svarer om dere. Vil du at jeg sender deg rapporten?',
+  'Oppfølging 1':'Hei igjen {name}! Vil bare høre om dere fikk sett på meldingen min? Sjekket AI-synligheten deres – det var noe interessant der. Send deg?',
+  'Oppfølging 2':'Hei {name}! Løfter denne opp igjen i tilfelle den forsvant i en travel hverdag. Hva ChatGPT svarer om dere er faktisk ganske viktig nå.',
+  'Oppfølging 3':'Hei {name}. Siste gang! Ville bare sjekke en aller siste gang om AI-synlighet er noe dere vurderer. Om ikke – så er det helt greit.',
+  'Etter svar':'Bra å høre {name}! La oss ta en rask prat – 15 min. Hva passer for deg?',
+};
 
-function toast(msg, err = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast' + (err ? ' err' : '');
-  t.style.display = 'block';
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => { t.style.display = 'none'; }, 6000);
+const MAIN_TABS=['LEADs','Kontakt i dag','Venter','Svart','Ikke svart','Oppfølging'];
+
+// ── ICONS ── (alle har eksplisitt width/height så de aldri ekspanderer)
+const SZ={width:16,height:16};
+const Ic={
+  Search:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+  Edit:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+  Save:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
+  X:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>,
+  Check:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+  Msg:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+  Cal:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  Users:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  Plus:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  Bar:()=><svg {...SZ} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  Hand:()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v6"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>,
+  Note:()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+  Inbox:()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>,
+  Wifi:()=><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>,
+};
+
+// ── LEVEL BADGE ──
+function LevelBadge({level}){
+  const cls=level==='Første kontakt'?'l1':level==='Møte booket'?'l3':level==='Siste venting'?'l4':level==='Varm oppfølging'?'l5':'l2';
+  return <span className={`lvlbdg ${cls}`}>{level}</span>;
 }
 
-function linkPill(url, label) {
-  if (!url) return '';
-  return `<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
-}
-
-function kort(l) {
-  const opts = STATUSER.map(s =>
-    `<option value="${s.navn}" ${s.navn === l.status ? 'selected' : ''}>${s.navn}</option>`).join('');
-  const tlf = l.telefon
-    ? `<div class="tlf">📞 <a href="tel:${l.telefon.replace(/\s/g,'')}">${l.telefon}</a></div>` : '';
-  return `<div class="card" data-id="${l.id}">
-    <div class="navn">${l.navn}</div>
-    ${tlf}
-    <div class="links">
-      ${linkPill(l.nettside, '🌐 Nett')}
-      ${linkPill(l.facebook, 'f Facebook')}
-      ${linkPill(l.instagram, '◎ Insta')}
+// ── EDIT MODAL ──
+function EditModal({lead,onClose,onSave,saving}){
+  const [f,setF]=useState({...lead});
+  const s=(k,v)=>setF(p=>({...p,[k]:v}));
+  const quick=t=>{
+    if(t==='booket')setF(p=>({...p,status:'Svart',level:'Møte booket'}));
+    else if(t==='svart')setF(p=>({...p,status:'Svart'}));
+    else if(t==='venter')setF(p=>({...p,status:'Venter',next_contact:p.next_contact||fmtDate(addWeekdays(new Date(),3))}));
+    else if(t==='ikke')setF(p=>({...p,status:'Ikke svart'}));
+  };
+  return(
+    <div className="mo-overlay su" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div className="mo-sheet">
+        <div style={{background:'white',padding:'15px 18px',borderBottom:'1.5px solid var(--g200)',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
+          <span style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:20}}>Rediger Lead</span>
+          <button onClick={onClose} style={{background:'var(--g100)',borderRadius:'50%',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--g600)'}}><Ic.X/></button>
+        </div>
+        <div style={{padding:'15px',overflowY:'auto',flex:1,WebkitOverflowScrolling:'touch'}}>
+          <div style={{background:'white',borderRadius:12,border:'1.5px solid var(--g200)',padding:'12px',marginBottom:14}}>
+            <div className="lbl" style={{marginBottom:9}}>Hva har skjedd?</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <button className={`obtn ${f.level==='Møte booket'?'ob':''}`} onClick={()=>quick('booket')}><Ic.Hand/>Booket møte</button>
+              <button className={`obtn ${f.status==='Svart'&&f.level!=='Møte booket'?'os':''}`} onClick={()=>quick('svart')}><Ic.Msg/>Fått svar</button>
+              <button className={`obtn ${f.status==='Venter'?'ov':''}`} onClick={()=>quick('venter')}><Ic.Cal/>Sett på vent</button>
+              <button className={`obtn ${f.status==='Ikke svart'?'oi':''}`} onClick={()=>quick('ikke')}><Ic.X/>Ikke svart</button>
+            </div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <div><label className="lbl">Bedriftsnavn</label><input className="fi" value={f.name||''} onChange={e=>s('name',e.target.value)}/></div>
+            <div><label className="lbl">Telefon</label><input className="fi" value={f.phone||''} onChange={e=>s('phone',e.target.value)} type="tel"/></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div><label className="lbl">Bransje</label><input className="fi" value={f.bransje||''} onChange={e=>s('bransje',e.target.value)} placeholder="f.eks bilpleie"/></div>
+              <div><label className="lbl">By</label><input className="fi" value={f.by||''} onChange={e=>s('by',e.target.value)} placeholder="f.eks Oslo"/></div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div><label className="lbl">Facebook URL</label><input className="fi" value={f.fb||''} onChange={e=>s('fb',e.target.value)} style={{fontSize:12}}/></div>
+              <div><label className="lbl">Instagram URL</label><input className="fi" value={f.ig||''} onChange={e=>s('ig',e.target.value)} style={{fontSize:12}}/></div>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,paddingTop:10,borderTop:'1.5px solid var(--g200)'}}>
+              <div>
+                <label className="lbl">Fane / Status</label>
+                <select className="fi" value={f.status} onChange={e=>s('status',e.target.value)}>
+                  {['LEADs','Kontakt i dag','Venter','Svart','Ikke svart','Oppfølging'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="lbl">Nivå</label>
+                <select className="fi" value={f.level} onChange={e=>s('level',e.target.value)}>
+                  {['Første kontakt','Oppfølging 1','Oppfølging 2','Oppfølging 3','Siste venting','Møte booket'].map(v=><option key={v}>{v}</option>)}
+                </select>
+              </div>
+            </div>
+            {f.status==='Venter'&&(
+              <div><label className="lbl">Neste kontaktdato</label><input className="fi" type="date" value={f.next_contact||''} onChange={e=>s('next_contact',e.target.value)}/></div>
+            )}
+            <div><label className="lbl">Notat</label><textarea className="ta" style={{minHeight:70}} value={f.note||''} onChange={e=>s('note',e.target.value)} placeholder="Skriv noe om denne leadet..."/></div>
+          </div>
+        </div>
+        <div style={{background:'white',padding:'14px 16px',paddingBottom:'calc(14px + env(safe-area-inset-bottom,0px))',borderTop:'1.5px solid var(--g200)',flexShrink:0}}>
+          <button className="bp" onClick={()=>onSave(f)} disabled={saving} style={{width:'100%',height:'44px',fontSize:14,opacity:saving?.7:1}}>
+            {saving?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:18,height:18}} className="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>:<Ic.Save/>}
+            {saving?'Lagrer...':'Lagre endringer'}
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="row">
-      <select onchange="settStatus(${l.id}, this.value)">${opts}</select>
-      <button class="del" title="Slett" onclick="slett(${l.id})">🗑</button>
+  );
+}
+
+
+// ── OPPFØLGING CARD ──
+function OppfolgingCard({lead,onEdit,onMoveToKontakt,onSave}){
+  const [editingDate,setEditingDate]=useState(false);
+  const [dato,setDato]=useState(lead.next_contact||'');
+  const isOverdue=lead.next_contact&&lead.next_contact<=todayStr();
+
+  const saveDato=async()=>{
+    const updates={next_contact:dato||null};
+    await sb.from('crm_leads').update(updates).eq('id',lead.id);
+    onSave({...lead,...updates});
+    setEditingDate(false);
+    toast('Dato lagret ✓');
+  };
+
+  return(
+    <div className="card fu" style={{padding:'14px',marginBottom:10,position:'relative',borderLeft:isOverdue?'3px solid var(--or)':'1.5px solid var(--g200)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',paddingRight:32,marginBottom:6}}>
+        <div>
+          <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:19,lineHeight:1.1}}>{lead.name}</div>
+          {lead.phone&&<div style={{fontSize:12,color:'var(--g400)',marginTop:1}}>{lead.phone}</div>}
+        </div>
+        {isOverdue&&<span style={{fontSize:10,fontWeight:700,background:'var(--orp)',color:'var(--or)',borderRadius:5,padding:'2px 7px',flexShrink:0}}>SEND NÅ</span>}
+      </div>
+      <button onClick={()=>onEdit(lead)} style={{position:'absolute',top:12,right:12,background:'var(--g100)',borderRadius:7,padding:'5px',color:'var(--g500)',width:28,height:28,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <Ic.Edit/>
+      </button>
+
+      {/* Notat */}
+      {lead.note&&(
+        <div style={{fontSize:12,color:'var(--g600)',background:'var(--g50)',borderRadius:7,padding:'6px 10px',marginBottom:8,border:'1.5px solid var(--g200)'}}>
+          📝 {lead.note}
+        </div>
+      )}
+
+      {/* Dato-kontroll */}
+      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+        <div style={{display:'flex',alignItems:'center',gap:5,fontSize:12,color:'var(--g600)',background:'var(--g50)',borderRadius:8,padding:'6px 10px',border:'1.5px solid var(--g200)',flex:1}}>
+          <Ic.Cal/>
+          {editingDate?(
+            <input
+              type="date"
+              value={dato}
+              onChange={e=>setDato(e.target.value)}
+              style={{border:'none',background:'transparent',outline:'none',fontSize:12,fontWeight:600,color:'var(--g900)',width:'100%'}}
+              autoFocus
+            />
+          ):(
+            <span onClick={()=>setEditingDate(true)} style={{cursor:'pointer',fontWeight:600,color:isOverdue?'var(--or)':'var(--g900)'}}>
+              {lead.next_contact?`Send: ${lead.next_contact}`:'Sett dato →'}
+            </span>
+          )}
+        </div>
+        {editingDate&&(
+          <button onClick={saveDato} style={{background:'var(--or)',color:'white',borderRadius:8,padding:'6px 10px',fontSize:12,fontWeight:700,height:34,flexShrink:0}}>
+            OK
+          </button>
+        )}
+      </div>
+
+      {/* Flytt til Kontakt i dag */}
+      <button
+        onClick={()=>onMoveToKontakt(lead.id)}
+        style={{width:'100%',height:36,fontWeight:700,fontSize:13,background:'var(--g900)',color:'white',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',gap:6}}
+      >
+        <Ic.Plus/>Send i dag
+      </button>
+
+      {/* Social links */}
+      {(lead.fb&&lead.fb!=='Ikke funnet'||lead.ig&&lead.ig!=='Ikke funnet')&&(
+        <div style={{display:'flex',gap:6,marginTop:8}}>
+          {lead.fb&&lead.fb!=='Ikke funnet'&&<a href={lead.fb} target="_blank" rel="noreferrer" style={{fontSize:11,fontWeight:700,background:'var(--g100)',color:'var(--g700)',padding:'3px 9px',borderRadius:5,textDecoration:'none'}}>Facebook</a>}
+          {lead.ig&&lead.ig!=='Ikke funnet'&&<a href={lead.ig} target="_blank" rel="noreferrer" style={{fontSize:11,fontWeight:700,background:'var(--g100)',color:'var(--g700)',padding:'3px 9px',borderRadius:5,textDecoration:'none'}}>Instagram</a>}
+        </div>
+      )}
     </div>
-  </div>`;
+  );
 }
 
-function tegn() {
-  const filtrert = alle.filter(l =>
-    !sok || (l.navn || '').toLowerCase().includes(sok.toLowerCase()));
-  document.getElementById('total').textContent = `${alle.length} leads totalt`;
-  document.getElementById('board').innerHTML = STATUSER.map(s => {
-    const iKol = filtrert.filter(l => (l.status || 'Ny') === s.navn);
-    const kortene = iKol.length
-      ? iKol.map(kort).join('')
-      : `<div class="empty">Ingen</div>`;
-    return `<div class="col">
-      <h2><span class="dot" style="background:${s.farge}"></span>${s.navn}
-        <span class="count">${iKol.length}</span></h2>
-      ${kortene}
-    </div>`;
-  }).join('');
+// ── LEAD CARD ──
+function LeadCard({lead,activeTab,onEdit,onAction,messages}){
+  const getMsg=()=>(messages[lead.level]||messages['Første kontakt']||'').replace(/{name}/g,lead.name||'');
+  const copy=()=>navigator.clipboard?.writeText(getMsg()).then(()=>toast('Kopiert!')).catch(()=>toast('Kopier manuelt'));
+  return(
+    <div className="card fu" style={{padding:'15px',marginBottom:12,position:'relative'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8,paddingRight:34}}>
+        <div>
+          <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:20,lineHeight:1.1}}>{lead.name}</div>
+          <div style={{display:'flex',gap:8,marginTop:2,flexWrap:'wrap'}}>
+            {lead.phone&&<span style={{fontSize:12,color:'var(--g400)'}}>{lead.phone}</span>}
+            {lead.bransje&&<span style={{fontSize:11,color:'var(--or)',fontWeight:600,background:'var(--orp)',borderRadius:4,padding:'1px 6px'}}>{lead.bransje}</span>}
+            {lead.by&&<span style={{fontSize:11,color:'var(--bl)',fontWeight:600,background:'var(--blp)',borderRadius:4,padding:'1px 6px'}}>{lead.by}</span>}
+          </div>
+        </div>
+        <LevelBadge level={lead.level}/>
+        {lead.level==='Varm oppfølging'&&<span style={{fontSize:10,fontWeight:700,background:'#E6FAF5',color:'#0D7A5F',borderRadius:5,padding:'2px 7px',marginLeft:4,flexShrink:0}}>🔥 Varm</span>}
+      </div>
+      <button onClick={()=>onEdit(lead)} style={{position:'absolute',top:13,right:13,background:'var(--g100)',borderRadius:8,padding:'6px',color:'var(--g500)',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <Ic.Edit/>
+      </button>
+      {(lead.fb&&lead.fb!=='Ikke funnet'||lead.ig&&lead.ig!=='Ikke funnet')&&(
+        <div style={{display:'flex',gap:6,marginBottom:10}}>
+          {lead.fb&&lead.fb!=='Ikke funnet'&&<a href={lead.fb} target="_blank" rel="noreferrer" style={{fontSize:11,fontWeight:700,background:'var(--g100)',color:'var(--g700)',padding:'4px 10px',borderRadius:6,textDecoration:'none'}}>Facebook</a>}
+          {lead.ig&&lead.ig!=='Ikke funnet'&&<a href={lead.ig} target="_blank" rel="noreferrer" style={{fontSize:11,fontWeight:700,background:'var(--g100)',color:'var(--g700)',padding:'4px 10px',borderRadius:6,textDecoration:'none'}}>Instagram</a>}
+        </div>
+      )}
+      {lead.note&&<div style={{fontSize:12,color:'var(--g600)',background:'var(--g50)',borderRadius:8,padding:'6px 10px',marginBottom:10,border:'1.5px solid var(--g200)'}}>📝 {lead.note}</div>}
+      {activeTab==='Kontakt i dag'&&(
+        <div className="msg-blk">{getMsg()}<button className="cpbtn" onClick={copy}>Kopier</button></div>
+      )}
+      {activeTab==='Kontakt i dag'&&(
+        <div className="action-grid">
+          <button className="bp" onClick={()=>onAction(lead.id,'Venter')}>
+            <Ic.Check/>{lead.level==='Første kontakt'?'Kontaktet':`Sendt ${lead.level.toLowerCase()}`}
+          </button>
+          <button className="bs" onClick={()=>onAction(lead.id,'Ikke svart')}>
+            <Ic.X/>Ikke kontaktet
+          </button>
+          <button onClick={()=>onAction(lead.id,'Svart')} className="span2" style={{height:38,fontWeight:700,background:'var(--gr)',color:'white',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',gap:6,width:'100%',fontSize:13}}>
+            <Ic.Msg/>Fått svar!
+          </button>
+        </div>
+      )}
+      {activeTab==='Svart'&&lead.level!=='Møte booket'&&(
+        <div style={{marginTop:10,display:'flex',flexDirection:'column',gap:7}}>
+          <button onClick={()=>onAction(lead.id,'Booket')} style={{width:'100%',height:38,fontSize:13,fontWeight:700,background:'var(--g900)',color:'white',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',gap:7}}>
+            <Ic.Hand/><span style={{color:'var(--or)'}}>Booket møte / prøve!</span>
+          </button>
+          <button onClick={()=>onAction(lead.id,'Oppfølging')} style={{width:'100%',height:34,fontSize:12,fontWeight:700,background:'#E6FAF5',color:'#0D7A5F',borderRadius:9,border:'1.5px solid #A7E8D8',display:'flex',alignItems:'center',justifyContent:'center',gap:6}}>
+            <Ic.Cal/>Legg i Oppfølging
+          </button>
+        </div>
+      )}
+      {activeTab==='Venter'&&lead.next_contact&&(
+        <div style={{marginTop:10,fontSize:13,color:'var(--g600)',background:'var(--g50)',borderRadius:10,padding:'8px 12px',border:'1.5px solid var(--g200)',display:'flex',alignItems:'center',gap:7}}>
+          <Ic.Cal/>Neste kontakt: <strong style={{color:'var(--g900)'}}>{lead.next_contact}</strong>
+        </div>
+      )}
+    </div>
+  );
 }
 
-async function last() {
-  alle = await api('/api/leads');
-  tegn();
+// ── STATS ──
+function Stats({leads}){
+  const dms=leads.filter(l=>l.status!=='LEADs'&&!(l.status==='Ikke svart'&&l.level==='Første kontakt')).length;
+  const reps=leads.filter(l=>l.status==='Svart'||l.level==='Møte booket').length;
+  const bkd=leads.filter(l=>l.level==='Møte booket').length;
+  const act=leads.filter(l=>l.status==='Venter'||l.status==='Kontakt i dag').length;
+  const cr=dms>0?Math.round(reps/dms*100):0;
+  const br=reps>0?Math.round(bkd/reps*100):0;
+
+  // Bransje breakdown
+  const bransjeMap={};
+  leads.forEach(l=>{if(l.bransje){bransjeMap[l.bransje]=(bransjeMap[l.bransje]||0)+1;}});
+  const topBransjer=Object.entries(bransjeMap).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  return(
+    <div style={{padding:'16px',paddingBottom:100}}>
+      <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:24,marginBottom:14}}>Resultater — All time</div>
+      <div style={{background:'linear-gradient(135deg,var(--or),var(--re))',borderRadius:18,padding:'22px 20px',marginBottom:14}}>
+        <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.8px',color:'rgba(255,255,255,.7)',marginBottom:4}}>Bookede møter / prøver</div>
+        <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:64,color:'white',lineHeight:1}}>{bkd}</div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+        {[['DMs sendt',dms,'var(--or)'],['Svar mottatt',reps,'var(--bl)'],['Svar-rate',cr+'%','var(--gr)'],['Booking-rate',br+'%','var(--pu)']].map(([l,v,c])=>(
+          <div key={l} className="scard">
+            <div className="slbl" style={{color:c}}>{l}</div>
+            <div className="snum">{v}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{background:'var(--g900)',borderRadius:14,padding:'15px 16px',marginBottom:12,display:'flex',alignItems:'center',gap:12}}>
+        <div style={{color:'var(--or)',flexShrink:0}}><Ic.Users/></div>
+        <div>
+          <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'var(--g400)',marginBottom:2}}>Aktive i trakten</div>
+          <div><span style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:30,color:'white'}}>{act}</span> <span style={{fontSize:13,color:'var(--g400)',fontWeight:500}}>leads bearbeides nå</span></div>
+        </div>
+      </div>
+      <div style={{background:'white',borderRadius:14,border:'1.5px solid var(--g200)',padding:'13px 15px',marginBottom:12}}>
+        <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'var(--g400)',marginBottom:8}}>Per fane</div>
+        {MAIN_TABS.map(tab=>(
+          <div key={tab} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid var(--g100)'}}>
+            <span style={{fontSize:13,fontWeight:500,color:'var(--g700)'}}>{tab}</span>
+            <span style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:20}}>{leads.filter(l=>l.status===tab).length}</span>
+          </div>
+        ))}
+      </div>
+      {topBransjer.length>0&&(
+        <div style={{background:'white',borderRadius:14,border:'1.5px solid var(--g200)',padding:'13px 15px'}}>
+          <div style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'var(--g400)',marginBottom:8}}>Topp bransjer</div>
+          {topBransjer.map(([b,n])=>(
+            <div key={b} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid var(--g100)'}}>
+              <span style={{fontSize:13,fontWeight:500,color:'var(--g700)'}}>{b}</span>
+              <span style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:20}}>{n}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-async function settStatus(id, status) {
-  const lead = alle.find(l => l.id === id);
-  if (lead) lead.status = status;
-  tegn();
-  await api('/api/leads/' + id, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status })
-  });
+// ── MESSAGES TAB ──
+function MsgsTab({messages,setMessages}){
+  const [editKey,setEditKey]=useState(null);
+  const [draft,setDraft]=useState('');
+  const [saving,setSaving]=useState(false);
+  const labels={'Første kontakt':'1. Første kontakt','Oppfølging 1':'2. Oppfølging 1','Oppfølging 2':'3. Oppfølging 2','Oppfølging 3':'4. Siste oppfølging','Etter svar':'5. Etter svar'};
+  const startEdit=k=>{setEditKey(k);setDraft(messages[k]||'');};
+  const saveEdit=async()=>{
+    setSaving(true);
+    const updated={...messages,[editKey]:draft};
+    await sb.from('crm_messages').upsert({id:editKey,tekst:draft});
+    setMessages(updated);
+    setEditKey(null);
+    setSaving(false);
+    toast('Melding lagret ✓');
+  };
+  return(
+    <div style={{padding:'16px',paddingBottom:100}}>
+      <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:24,marginBottom:6}}>Meldingsmaler</div>
+      <p style={{fontSize:13,color:'var(--g400)',marginBottom:16}}>Bruk <code style={{background:'var(--g100)',borderRadius:4,padding:'1px 5px',fontSize:12}}>{'{name}'}</code> for bedriftsnavn.</p>
+      {Object.entries(labels).map(([key,label])=>(
+        <div key={key} className="msec">
+          <div className="mhdr">
+            <div>
+              <div style={{fontSize:11,fontWeight:700,textTransform:'uppercase',letterSpacing:'.6px',color:'var(--or)',marginBottom:1}}>{label}</div>
+            </div>
+            {editKey!==key?(
+              <button onClick={()=>startEdit(key)} style={{background:'white',border:'1.5px solid var(--g200)',borderRadius:8,padding:'5px 11px',fontSize:12,fontWeight:700,color:'var(--g700)',display:'flex',alignItems:'center',gap:4}}>
+                <Ic.Edit/>Endre
+              </button>
+            ):(
+              <div style={{display:'flex',gap:6}}>
+                <button onClick={()=>setEditKey(null)} style={{background:'var(--g100)',borderRadius:8,padding:'5px 10px',fontSize:12,fontWeight:700,color:'var(--g600)'}}>Avbryt</button>
+                <button onClick={saveEdit} disabled={saving} style={{background:'var(--or)',color:'white',borderRadius:8,padding:'5px 12px',fontSize:12,fontWeight:700,opacity:saving?.7:1}}>
+                  {saving?'Lagrer...':'Lagre'}
+                </button>
+              </div>
+            )}
+          </div>
+          <div style={{padding:'12px 14px'}}>
+            {editKey===key?(
+              <textarea className="mtxt" value={draft} onChange={e=>setDraft(e.target.value)} autoFocus/>
+            ):(
+              <div style={{fontSize:13.5,lineHeight:1.6,color:'var(--g700)',whiteSpace:'pre-wrap'}}>
+                {messages[key]||<span style={{color:'var(--g400)',fontStyle:'italic'}}>Ingen mal satt</span>}
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
-async function slett(id) {
-  if (!confirm('Slette denne leaden?')) return;
-  alle = alle.filter(l => l.id !== id);
-  tegn();
-  await fetch('/api/leads/' + id, { method: 'DELETE' });
+// ── NOTES TAB ──
+function NotesTab(){
+  const [draft,setDraft]=useState('Laster...');
+  const [saving,setSaving]=useState(false);
+  const [loaded,setLoaded]=useState(false);
+  useEffect(()=>{
+    sb.from('crm_notes').select('tekst').eq('id',1).single()
+      .then(({data})=>{setDraft(data?.tekst||'');setLoaded(true);});
+  },[]);
+  const save=async()=>{
+    setSaving(true);
+    await sb.from('crm_notes').upsert({id:1,tekst:draft});
+    setSaving(false);
+    toast('Notater lagret ✓');
+  };
+  return(
+    <div style={{padding:'16px',paddingBottom:100}}>
+      <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:24,marginBottom:6}}>Notater</div>
+      <p style={{fontSize:13,color:'var(--g400)',marginBottom:16}}>Lagre viktig info, priser, lenker, mål – alt du trenger å huske.</p>
+      <textarea
+        className="ta"
+        style={{minHeight:300,marginBottom:14,fontSize:14,lineHeight:1.7}}
+        value={draft}
+        onChange={e=>setDraft(e.target.value)}
+        disabled={!loaded}
+        placeholder={'Eks:\n\nMål: 5 nye kunder innen juni\nPris: 4 500/mnd (2 250 første mnd)\nPilot: OAEK + VBR\n\nViktige lenker:\n...'}
+      />
+      <button className="bp wide" onClick={save} disabled={saving||!loaded} style={{opacity:saving?.7:1}}>
+        {saving?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:18,height:18}} className="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>:<Ic.Save/>}
+        {saving?'Lagrer...':'Lagre notater'}
+      </button>
+    </div>
+  );
 }
 
-document.getElementById('search').addEventListener('input', e => { sok = e.target.value; tegn(); });
 
-document.getElementById('hentBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('hentBtn');
-  btn.disabled = true; btn.textContent = 'Henter…';
-  try {
-    const r = await api('/api/hent-leads', { method: 'POST' });
-    if (r.feil) toast(r.melding || r.feil, true);
-    else { toast(r.melding + (r.neste ? `  Neste: ${r.neste}.` : '')); await last(); }
-  } catch (e) {
-    toast('Noe gikk galt: ' + e.message, true);
-  } finally {
-    btn.disabled = false; btn.textContent = '＋ Hent flere leads';
+// Setup banner when key is missing
+const KEY_MISSING = false; // Key er satt
+function SetupBanner(){
+  if(!KEY_MISSING)return null;
+  return(
+    <div style={{background:'#FFF3CD',border:'1.5px solid #F0C040',borderRadius:10,padding:'10px 14px',margin:'12px 16px 0',fontSize:12,color:'#856404',fontWeight:600,lineHeight:1.5}}>
+      ⚠️ <strong>Supabase key mangler</strong> — Åpne Index.html, finn <code style={{background:'rgba(0,0,0,.08)',borderRadius:3,padding:'1px 4px'}}>SETT_INN_DIN_ANON_KEY_HER</code> og bytt med din anon key. Appen funger med default-meldinger inntil da.
+    </div>
+  );
+}
+
+// ── MAIN APP ──
+function App(){
+  const [leads,setLeads]=useState([]);
+  const [activeTab,setActiveTab]=useState('LEADs');
+  const [navTab,setNavTab]=useState('leads');
+  const [search,setSearch]=useState('');
+  const [editing,setEditing]=useState(null);
+  const [savingEdit,setSavingEdit]=useState(false);
+  const [messages,setMessages]=useState({...DEFAULT_MSGS});
+  const [loading,setLoading]=useState(true);
+  const [online,setOnline]=useState(navigator.onLine);
+  const [pullCount,setPullCount]=useState(30);
+  const channelRef=useRef(null);
+
+  useEffect(()=>{
+    const on=()=>setOnline(true);
+    const off=()=>setOnline(false);
+    window.addEventListener('online',on);
+    window.addEventListener('offline',off);
+    return()=>{window.removeEventListener('online',on);window.removeEventListener('offline',off);};
+  },[]);
+
+  // Initial load
+  useEffect(()=>{
+    Promise.all([loadLeads(),loadMessages()]).finally(()=>setLoading(false));
+    setupRealtime();
+    return()=>{if(channelRef.current)sb.removeChannel(channelRef.current);};
+  },[]);
+
+  const loadLeads=async()=>{
+    const td=todayStr();
+    const {data,error}=await sb.from('crm_leads').select('*').order('created_at',{ascending:false});
+    if(error){toast('Feil ved henting av leads');return;}
+    // Auto-flytt overdue venter-leads
+    const toUpdate=[];
+    const processed=(data||[]).map(l=>{
+      if(l.status==='Venter'&&l.next_contact&&l.next_contact<=td){
+        const u=l.level==='Siste venting'?{...l,status:'Ikke svart',next_contact:null}:{...l,status:'Kontakt i dag'};
+        toUpdate.push(u);return u;
+      }
+      // Auto-flytt Oppfølging-leads når datoen er nådd
+      if(l.status==='Oppfølging'&&l.next_contact&&l.next_contact<=td){
+        const u={...l,status:'Kontakt i dag',level:'Varm oppfølging'};
+        toUpdate.push(u);return u;
+      }
+      return l;
+    });
+    setLeads(processed);
+    if(toUpdate.length>0){
+      await Promise.all(toUpdate.map(l=>sb.from('crm_leads').update({status:l.status,next_contact:l.next_contact}).eq('id',l.id)));
+    }
+  };
+
+  const loadMessages=async()=>{
+    try{
+      const {data,error}=await sb.from('crm_messages').select('*');
+      if(!error&&data&&data.length>0){
+        // Merge Supabase data on top of defaults (Supabase wins if row exists)
+        const m={...DEFAULT_MSGS};
+        data.forEach(r=>{m[r.id]=r.tekst;});
+        setMessages(m);
+      }
+      // If Supabase empty or error: keep DEFAULT_MSGS already in state
+    }catch(e){
+      // Network error: keep defaults
+    }
+  };
+
+  // Realtime: leads oppdateres automatisk på alle enheter
+  const setupRealtime=()=>{
+    channelRef.current=sb.channel('crm_leads_changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'crm_leads'},(payload)=>{
+        if(payload.eventType==='INSERT'){
+          setLeads(prev=>[payload.new,...prev]);
+        } else if(payload.eventType==='UPDATE'){
+          setLeads(prev=>prev.map(l=>l.id===payload.new.id?payload.new:l));
+        } else if(payload.eventType==='DELETE'){
+          setLeads(prev=>prev.filter(l=>l.id!==payload.old.id));
+        }
+      })
+      .subscribe();
+  };
+
+  const pullDailyLeads=async()=>{
+    const toUpdate=leads.filter(l=>l.status==='LEADs').slice(0,pullCount);
+    if(toUpdate.length===0){toast('Ingen leads å hente');return;}
+    const ids=toUpdate.map(l=>l.id);
+    const {error}=await sb.from('crm_leads').update({status:'Kontakt i dag'}).in('id',ids);
+    if(!error){
+      setLeads(prev=>prev.map(l=>ids.includes(l.id)?{...l,status:'Kontakt i dag'}:l));
+      toast(`${toUpdate.length} leads hentet`);
+    }
+  };
+
+  const onAction=async(id,newStatus)=>{
+    const lead=leads.find(l=>l.id===id);
+    if(!lead)return;
+    let updates={status:newStatus};
+    if(newStatus==='Venter'){
+      const lvls=['Første kontakt','Oppfølging 1','Oppfølging 2','Oppfølging 3'];
+      const nxts=['Oppfølging 1','Oppfølging 2','Oppfølging 3','Siste venting'];
+      const i=lvls.indexOf(lead.level);
+      updates.next_contact=fmtDate(addWeekdays(new Date(),i<=0?3:5));
+      if(i>=0)updates.level=nxts[i];
+    }
+    if(newStatus==='Booket'){updates.status='Svart';updates.level='Møte booket';}
+    if(newStatus==='Oppfølging'){updates.next_contact=fmtDate(addWeekdays(new Date(),7));}
+    setLeads(prev=>prev.map(l=>l.id===id?{...l,...updates}:l));
+    await sb.from('crm_leads').update(updates).eq('id',id);
+  };
+
+  // Flytt Oppfølging-lead manuelt til Kontakt i dag
+  const moveToKontakt=async(id)=>{
+    const updates={status:'Kontakt i dag',level:'Varm oppfølging',next_contact:null};
+    setLeads(prev=>prev.map(l=>l.id===id?{...l,...updates}:l));
+    await sb.from('crm_leads').update(updates).eq('id',id);
+    toast('Flyttet til Kontakt i dag ✓');
+  };
+
+  // Oppdater lead lokalt (brukes av OppfolgingCard inline dato-lagring)
+  const updateLeadLocally=lead=>{
+    setLeads(prev=>prev.map(l=>l.id===lead.id?lead:l));
+  };
+
+  const saveLead=async(lead)=>{
+    setSavingEdit(true);
+    const {error}=await sb.from('crm_leads').update({
+      name:lead.name,phone:lead.phone,website:lead.website,
+      fb:lead.fb,ig:lead.ig,status:lead.status,level:lead.level,
+      next_contact:lead.next_contact||null,note:lead.note,
+      bransje:lead.bransje,by:lead.by
+    }).eq('id',lead.id);
+    setSavingEdit(false);
+    if(!error){
+      setLeads(prev=>prev.map(l=>l.id===lead.id?{...l,...lead}:l));
+      setEditing(null);
+      toast('Lagret ✓');
+    } else {
+      toast('Feil – prøv igjen');
+    }
+  };
+
+  const filtered=leads
+    .filter(l=>l.status===activeTab&&(l.name||'').toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b)=>{
+      // Oppfølging: overdue først, deretter nærmeste dato
+      if(activeTab==='Oppfølging'){
+        const td=todayStr();
+        const aOver=a.next_contact&&a.next_contact<=td;
+        const bOver=b.next_contact&&b.next_contact<=td;
+        if(aOver&&!bOver)return -1;
+        if(!aOver&&bOver)return 1;
+        if(a.next_contact&&b.next_contact)return a.next_contact.localeCompare(b.next_contact);
+        if(a.next_contact)return -1;
+        if(b.next_contact)return 1;
+      }
+      return 0;
+    });
+  const cnts={};MAIN_TABS.forEach(t=>{cnts[t]=leads.filter(l=>l.status===t).length;});
+
+  if(loading){
+    return(
+      <div className="loader-full">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--or)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{width:44,height:44}} className="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:22,color:'var(--g800)'}}>Henter leads...</div>
+        <div style={{fontSize:13,color:'var(--g400)'}}>Kobler til Supabase</div>
+      </div>
+    );
   }
-});
 
-last();
+  return(
+    <div className="app-shell">
+      {/* HEADER */}
+      <div style={{position:'sticky',top:0,zIndex:10,background:'white',borderBottom:'1.5px solid var(--g200)',boxShadow:'0 1px 8px rgba(0,0,0,.05)'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'13px 16px 10px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:28,background:'linear-gradient(135deg,var(--or),var(--re))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>AI-CRM</div>
+            <span className={`dot-badge ${online?'':'red'}`} title={online?'Online':'Offline'}></span>
+          </div>
+          <span style={{fontSize:12,fontWeight:600,color:'var(--g400)',background:'var(--g100)',borderRadius:8,padding:'4px 10px'}}>{todayStr()}</span>
+        </div>
+        {navTab==='leads'&&(
+          <div className="hs" style={{display:'flex',gap:7,padding:'4px 16px 10px',overflowX:'auto'}}>
+            {MAIN_TABS.map(t=>(
+              <button key={t} onClick={()=>setActiveTab(t)} className={activeTab===t?'tab-on':'tab-off'} style={{whiteSpace:'nowrap',padding:'7px 14px',borderRadius:999,fontSize:13,fontWeight:700,flexShrink:0,transition:'all .15s'}}>
+                {t}{cnts[t]>0&&` (${cnts[t]})`}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {KEY_MISSING&&<SetupBanner/>}
+      {/* CONTENT */}
+      {navTab==='leads'&&(
+        <div style={{padding:'14px 16px',paddingBottom:96}}>
+          <div style={{position:'relative',marginBottom:13}}>
+            <div style={{position:'absolute',left:11,top:'50%',transform:'translateY(-50%)',color:'var(--g400)',width:18,height:18}}><Ic.Search/></div>
+            <input className="fi" style={{paddingLeft:37}} placeholder="Søk etter bedrift..." value={search} onChange={e=>setSearch(e.target.value)}/>
+          </div>
+          {activeTab==='LEADs'&&(
+            <div style={{display:'flex',gap:8,marginBottom:12,alignItems:'center'}}>
+              <div style={{display:'flex',alignItems:'center',background:'white',border:'1.5px solid var(--g200)',borderRadius:10,overflow:'hidden',height:42,flex:'0 0 auto'}}>
+                {[10,20,30,50].map(n=>(
+                  <button key={n} onClick={()=>setPullCount(n)} style={{padding:'0 12px',height:'100%',fontSize:13,fontWeight:700,background:pullCount===n?'var(--g900)':'transparent',color:pullCount===n?'white':'var(--g500)',borderRight:'1.5px solid var(--g200)',transition:'all .15s',whiteSpace:'nowrap'}}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <button className="bp" onClick={pullDailyLeads} style={{flex:1,height:42,fontSize:13}}>
+                <Ic.Plus/>Hent til "Kontakt i dag"
+              </button>
+            </div>
+          )}
+          {filtered.length>0?filtered.map(l=>(
+            activeTab==='Oppfølging'
+              ? <OppfolgingCard key={l.id} lead={l} onEdit={setEditing} onMoveToKontakt={moveToKontakt} onSave={updateLeadLocally}/>
+              : <LeadCard key={l.id} lead={l} activeTab={activeTab} onEdit={setEditing} onAction={onAction} messages={messages}/>
+          )):(
+            <div style={{textAlign:'center',padding:'48px 24px',background:'white',borderRadius:16,border:'2px dashed var(--g200)'}}>
+              <div style={{color:'var(--g300)',marginBottom:8,display:'flex',justifyContent:'center'}}><Ic.Inbox/></div>
+              <p style={{color:'var(--g400)',fontWeight:700,fontSize:14}}>Ingen leads i denne fanen akkurat nå.</p>
+            </div>
+          )}
+        </div>
+      )}
+      {navTab==='statistikk'&&<Stats leads={leads}/>}
+      {navTab==='meldinger'&&<MsgsTab messages={messages} setMessages={setMessages}/>}
+      {navTab==='notater'&&<NotesTab/>}
+
+      {/* BOTTOM NAV */}
+      <div className="bnav">
+        {[['leads','Leads',<Ic.Users/>],['statistikk','Stats',<Ic.Bar/>],['meldinger','Meldinger',<Ic.Msg/>],['notater','Notater',<Ic.Note/>]].map(([id,lbl,ic])=>(
+          <button key={id} className={`nbtn ${navTab===id?'on':''}`} onClick={()=>setNavTab(id)}>
+            {ic}{lbl}
+          </button>
+        ))}
+      </div>
+
+      {editing&&<EditModal lead={editing} onClose={()=>setEditing(null)} onSave={saveLead} saving={savingEdit}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
