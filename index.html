@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Volum Leads-CRM</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f7; --card: #fff; --ink: #1a1a1a; --muted: #6b7280;
+    --line: #e5e7eb; --accent: #ea580c; --accent2: #dc2626;
+    --ny: #3b82f6; --kontaktet: #7c3aed; --venter: #f59e0b; --booket: #16a765;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--ink); padding: 20px; }
+  header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .logo { font-weight: 900; font-size: 22px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.5px; }
+  .spacer { flex: 1; }
+  input.search { height: 38px; padding: 0 14px; border: 1px solid var(--line);
+    border-radius: 10px; background: #fff; font-size: 14px; min-width: 200px; }
+  button { cursor: pointer; font-size: 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: #fff; height: 38px; padding: 0 14px; font-weight: 600; }
+  button.primary { border: 0; color: #fff; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  button.primary:disabled { opacity: .6; cursor: default; }
+  .toast { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; font-size: 14px;
+    background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+  .toast.err { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
+  @media (max-width: 900px) { .board { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .board { grid-template-columns: 1fr; } }
+  .col { background: #eef0f3; border-radius: 14px; padding: 10px; min-height: 120px; }
+  .col h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .4px; margin: 4px 6px 10px;
+    display: flex; align-items: center; gap: 8px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .count { margin-left: auto; background: #fff; border-radius: 20px; padding: 1px 9px;
+    font-size: 12px; color: var(--ink); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 11px 12px; margin-bottom: 9px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .card .navn { font-weight: 700; font-size: 14px; margin-bottom: 5px; line-height: 1.3; }
+  .links { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .links a { font-size: 12px; text-decoration: none; padding: 3px 8px; border-radius: 7px;
+    background: #f3f4f6; color: #374151; border: 1px solid var(--line); }
+  .links a:hover { background: #e5e7eb; }
+  .tlf { font-size: 13px; color: var(--ink); margin-bottom: 8px; }
+  .tlf a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+  .row { display: flex; gap: 6px; align-items: center; }
+  select { flex: 1; height: 32px; border-radius: 8px; border: 1px solid var(--line);
+    background: #fff; font-size: 13px; padding: 0 8px; }
+  .del { border: 0; background: transparent; color: #9ca3af; font-size: 16px; width: 30px; padding: 0; }
+  .del:hover { color: var(--accent2); }
+  .empty { color: #9ca3af; font-size: 13px; text-align: center; padding: 14px 0; }
+</style>
+</head>
+<body>
+  <header>
+    <span class="logo">Volum Leads-CRM</span>
+    <span id="total" style="color:var(--muted);font-size:13px;"></span>
+    <span class="spacer"></span>
+    <input class="search" id="search" placeholder="Søk bedrift…" />
+    <button class="primary" id="hentBtn">＋ Hent flere leads</button>
+  </header>
+
+  <div id="toast" class="toast" style="display:none"></div>
+  <div class="board" id="board"></div>
+
+<script>
+const STATUSER = [
+  { navn: 'Ny',          farge: 'var(--ny)' },
+  { navn: 'Kontaktet',   farge: 'var(--kontaktet)' },
+  { navn: 'Venter',      farge: 'var(--venter)' },
+  { navn: 'Møte booket', farge: 'var(--booket)' },
+];
+
+let alle = [];
+let sok = '';
+
+const api = (url, opts) => fetch(url, opts).then(r => r.json());
+
+function toast(msg, err = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (err ? ' err' : '');
+  t.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.style.display = 'none'; }, 6000);
+}
+
+function linkPill(url, label) {
+  if (!url) return '';
+  return `<a href="${url}" target="_blank" rel="noopener">${label}</a>`;
+}
+
+function kort(l) {
+  const opts = STATUSER.map(s =>
+    `<option value="${s.navn}" ${s.navn === l.status ? 'selected' : ''}>${s.navn}</option>`).join('');
+  const tlf = l.telefon
+    ? `<div class="tlf">📞 <a href="tel:${l.telefon.replace(/\s/g,'')}">${l.telefon}</a></div>` : '';
+  return `<div class="card" data-id="${l.id}">
+    <div class="navn">${l.navn}</div>
+    ${tlf}
+    <div class="links">
+      ${linkPill(l.nettside, '🌐 Nett')}
+      ${linkPill(l.facebook, 'f Facebook')}
+      ${linkPill(l.instagram, '◎ Insta')}
+    </div>
+    <div class="row">
+      <select onchange="settStatus(${l.id}, this.value)">${opts}</select>
+      <button class="del" title="Slett" onclick="slett(${l.id})">🗑</button>
+    </div>
+  </div>`;
+}
+
+function tegn() {
+  const filtrert = alle.filter(l =>
+    !sok || (l.navn || '').toLowerCase().includes(sok.toLowerCase()));
+  document.getElementById('total').textContent = `${alle.length} leads totalt`;
+  document.getElementById('board').innerHTML = STATUSER.map(s => {
+    const iKol = filtrert.filter(l => (l.status || 'Ny') === s.navn);
+    const kortene = iKol.length
+      ? iKol.map(kort).join('')
+      : `<div class="empty">Ingen</div>`;
+    return `<div class="col">
+      <h2><span class="dot" style="background:${s.farge}"></span>${s.navn}
+        <span class="count">${iKol.length}</span></h2>
+      ${kortene}
+    </div>`;
+  }).join('');
+}
+
+async function last() {
+  alle = await api('/api/leads');
+  tegn();
+}
+
+async function settStatus(id, status) {
+  const lead = alle.find(l => l.id === id);
+  if (lead) lead.status = status;
+  tegn();
+  await api('/api/leads/' + id, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+}
+
+async function slett(id) {
+  if (!confirm('Slette denne leaden?')) return;
+  alle = alle.filter(l => l.id !== id);
+  tegn();
+  await fetch('/api/leads/' + id, { method: 'DELETE' });
+}
+
+document.getElementById('search').addEventListener('input', e => { sok = e.target.value; tegn(); });
+
+document.getElementById('hentBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('hentBtn');
+  btn.disabled = true; btn.textContent = 'Henter…';
+  try {
+    const r = await api('/api/hent-leads', { method: 'POST' });
+    if (r.feil) toast(r.melding || r.feil, true);
+    else { toast(r.melding + (r.neste ? `  Neste: ${r.neste}.` : '')); await last(); }
+  } catch (e) {
+    toast('Noe gikk galt: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = '＋ Hent flere leads';
+  }
+});
+
+last();
+</script>
+</body>
+</html>
