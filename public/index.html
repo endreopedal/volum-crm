@@ -16,20 +16,18 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --or:#E8500A;--orl:#FF6B2B;--orp:#FFF0E8;
-  --re:#C0392B;
+  --or:#F0522B;--orl:#FF7A4D;--orp:#FFEDE6;
+  --re:#CF2E1C;
   --g50:#F7F7F6;--g100:#EFEFED;--g200:#DDDDD9;
   --g400:#9B9B94;--g600:#6B6B63;--g800:#2A2A26;--g900:#141410;
   --gr:#1A9455;--grp:#E6F5EE;
-  --bl:#1A62C0;--blp:#E6EEF5;
+  --bl:#2E63F0;--blp:#E7EEFD;
   --pu:#6A2DBB;--pup:#F0EAFA;
-  --max:520px;
+  --max:1200px;
 }
 html,body{height:100%;background:var(--g50);}
-@media(min-width:700px){body{background:#EEECEA;}}
-@media(min-width:700px){
-  .app-shell{max-width:var(--max);margin:0 auto;background:var(--g50);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.1);}
-}
+.app-shell{max-width:var(--max);margin:0 auto;background:var(--g50);min-height:100vh;}
+@media(min-width:900px){html,body{background:#ECEAE8;}.app-shell{background:transparent;}}
 body{font-family:'DM Sans',sans-serif;color:var(--g900);-webkit-font-smoothing:antialiased;}
 button{cursor:pointer;border:none;font-family:inherit;background:none;}
 input,select,textarea{font-family:inherit;}
@@ -42,15 +40,15 @@ input,select,textarea{font-family:inherit;}
 .spin{animation:sp .7s linear infinite;}
 .card{background:white;border-radius:16px;border:1.5px solid var(--g200);box-shadow:0 1px 4px rgba(0,0,0,.04);}
 .fi{width:100%;border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;font-size:14px;font-weight:500;color:var(--g900);background:white;outline:none;transition:border-color .15s,box-shadow .15s;}
-.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(232,80,10,.12);}
+.fi:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(240,82,43,.12);}
 .ta{width:100%;border:1.5px solid var(--g200);border-radius:10px;padding:11px 13px;font-size:14px;font-weight:500;color:var(--g900);background:white;outline:none;resize:vertical;transition:border-color .15s;}
-.ta:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(232,80,10,.12);}
+.ta:focus{border-color:var(--or);box-shadow:0 0 0 3px rgba(240,82,43,.12);}
 .lbl{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--g400);margin-bottom:6px;}
 .bp{background:linear-gradient(135deg,var(--or),var(--re));color:white;font-weight:700;border-radius:10px;transition:opacity .15s,transform .1s;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;height:38px;padding:0 14px;font-size:13px;flex-shrink:0;}
 .bp:active{transform:scale(.97);opacity:.9;}.bp.wide{width:100%;height:42px;font-size:14px;padding:0 16px;}
 .bs{background:var(--g100);color:var(--g800);font-weight:700;border-radius:10px;transition:background .15s,transform .1s;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;height:38px;padding:0 14px;font-size:13px;flex-shrink:0;}.bs:hover{background:var(--g200);}
 .bs:active{transform:scale(.97);}.bs.wide{width:100%;height:42px;font-size:14px;padding:0 16px;}
-#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);background:var(--g900);color:white;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9999;white-space:nowrap;}
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--g900);color:white;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9999;white-space:nowrap;}
 #toast.on{opacity:1;}
 .bnav{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1.5px solid var(--g200);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:20;height:60px;}@media(min-width:700px){.bnav{left:50%;transform:translateX(-50%);width:var(--max);border-left:1.5px solid var(--g200);border-right:1.5px solid var(--g200);}}
 .nbtn{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;font-size:9px;font-weight:700;letter-spacing:.4px;color:var(--g400);text-transform:uppercase;gap:3px;}
@@ -64,7 +62,7 @@ input,select,textarea{font-family:inherit;}
 .l3{background:var(--grp);color:var(--gr);}
 .l4{background:var(--pup);color:var(--pu);}
 .l5{background:#E6FAF5;color:#0D7A5F;}
-.tab-on{background:linear-gradient(135deg,var(--or),var(--re));color:white;box-shadow:0 2px 8px rgba(232,80,10,.3);}
+.tab-on{background:linear-gradient(135deg,var(--or),var(--re));color:white;box-shadow:0 2px 8px rgba(240,82,43,.3);}
 .tab-off{background:white;color:var(--g600);border:1.5px solid var(--g200);}
 .mo-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;}@media(min-width:700px){.mo-overlay{align-items:center;padding:20px;}}.mo-sheet{background:var(--g50);width:100%;max-width:460px;border-radius:20px 20px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}@media(min-width:700px){.mo-sheet{border-radius:16px;}}
 .obtn{padding:9px 6px;border-radius:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:5px;border:1.5px solid var(--g200);background:white;color:var(--g700);}
@@ -78,13 +76,20 @@ input,select,textarea{font-family:inherit;}
 .msec{background:white;border-radius:14px;border:1.5px solid var(--g200);overflow:hidden;margin-bottom:12px;}
 .mhdr{padding:12px 14px;background:linear-gradient(135deg,var(--orp),white);border-bottom:1.5px solid var(--g200);display:flex;align-items:center;justify-content:space-between;}
 .mtxt{width:100%;min-height:80px;border:1.5px solid var(--g200);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.55;color:var(--g800);background:var(--g50);outline:none;resize:vertical;}
-.mtxt:focus{border-color:var(--or);background:white;box-shadow:0 0 0 3px rgba(232,80,10,.1);}
+.mtxt:focus{border-color:var(--or);background:white;box-shadow:0 0 0 3px rgba(240,82,43,.1);}
 .loader-full{position:fixed;inset:0;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:100;}
 .dot-badge{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--gr);margin-left:6px;vertical-align:middle;}
 .dot-badge.red{background:var(--re);}
 .action-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:4px;}
 .action-grid button{height:38px;font-size:13px;}
 .action-grid .span2{grid-column:span 2;width:100%;height:38px;font-size:13px;border:none;}
+.topnav{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;font-size:13.5px;font-weight:700;color:var(--g600);transition:all .15s;}
+.topnav:hover{background:var(--g100);}
+.topnav.on{background:var(--orp);color:var(--or);}
+.topnav svg{width:17px;height:17px;}
+.leadgrid{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:760px){.leadgrid{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:1120px){.leadgrid{grid-template-columns:repeat(3,1fr);}}
 </style>
 </head>
 <body>
@@ -225,7 +230,7 @@ function OppfolgingCard({lead,onEdit,onMoveToKontakt,onSave}){
   };
 
   return(
-    <div className="card fu" style={{padding:'14px',marginBottom:10,position:'relative',borderLeft:isOverdue?'3px solid var(--or)':'1.5px solid var(--g200)'}}>
+    <div className="card fu" style={{padding:'14px',marginBottom:0,position:'relative',borderLeft:isOverdue?'3px solid var(--or)':'1.5px solid var(--g200)'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',paddingRight:32,marginBottom:6}}>
         <div>
           <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:19,lineHeight:1.1}}>{lead.name}</div>
@@ -293,7 +298,7 @@ function LeadCard({lead,activeTab,onEdit,onAction,messages}){
   const getMsg=()=>(messages[lead.level]||messages['Første kontakt']||'').replace(/{name}/g,lead.name||'');
   const copy=()=>navigator.clipboard?.writeText(getMsg()).then(()=>toast('Kopiert!')).catch(()=>toast('Kopier manuelt'));
   return(
-    <div className="card fu" style={{padding:'15px',marginBottom:12,position:'relative'}}>
+    <div className="card fu" style={{padding:'15px',marginBottom:0,position:'relative'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8,paddingRight:34}}>
         <div>
           <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:20,lineHeight:1.1}}>{lead.name}</div>
@@ -686,15 +691,20 @@ function App(){
     <div className="app-shell">
       {/* HEADER */}
       <div style={{position:'sticky',top:0,zIndex:10,background:'white',borderBottom:'1.5px solid var(--g200)',boxShadow:'0 1px 8px rgba(0,0,0,.05)'}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'13px 16px 10px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 24px 10px',gap:16}}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>
             <div style={{fontFamily:'Barlow Condensed',fontWeight:900,fontSize:28,background:'linear-gradient(135deg,var(--or),var(--re))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>AI-CRM</div>
             <span className={`dot-badge ${online?'':'red'}`} title={online?'Online':'Offline'}></span>
           </div>
-          <span style={{fontSize:12,fontWeight:600,color:'var(--g400)',background:'var(--g100)',borderRadius:8,padding:'4px 10px'}}>{todayStr()}</span>
+          <div style={{display:'flex',gap:4,flexWrap:'wrap',justifyContent:'center'}}>
+            {[['leads','Leads',<Ic.Users/>],['statistikk','Stats',<Ic.Bar/>],['meldinger','Meldinger',<Ic.Msg/>],['notater','Notater',<Ic.Note/>]].map(([id,lbl,ic])=>(
+              <button key={id} className={`topnav ${navTab===id?'on':''}`} onClick={()=>setNavTab(id)}>{ic}{lbl}</button>
+            ))}
+          </div>
+          <span style={{fontSize:12,fontWeight:600,color:'var(--g400)',background:'var(--g100)',borderRadius:8,padding:'4px 10px',whiteSpace:'nowrap'}}>{todayStr()}</span>
         </div>
         {navTab==='leads'&&(
-          <div className="hs" style={{display:'flex',gap:7,padding:'4px 16px 10px',overflowX:'auto'}}>
+          <div className="hs" style={{display:'flex',gap:7,padding:'6px 24px 12px',overflowX:'auto'}}>
             {MAIN_TABS.map(t=>(
               <button key={t} onClick={()=>setActiveTab(t)} className={activeTab===t?'tab-on':'tab-off'} style={{whiteSpace:'nowrap',padding:'7px 14px',borderRadius:999,fontSize:13,fontWeight:700,flexShrink:0,transition:'all .15s'}}>
                 {t}{cnts[t]>0&&` (${cnts[t]})`}
@@ -707,7 +717,7 @@ function App(){
       {KEY_MISSING&&<SetupBanner/>}
       {/* CONTENT */}
       {navTab==='leads'&&(
-        <div style={{padding:'14px 16px',paddingBottom:96}}>
+        <div style={{padding:'18px 24px 44px'}}>
           <div style={{position:'relative',marginBottom:13}}>
             <div style={{position:'absolute',left:11,top:'50%',transform:'translateY(-50%)',color:'var(--g400)',width:18,height:18}}><Ic.Search/></div>
             <input className="fi" style={{paddingLeft:37}} placeholder="Søk etter bedrift..." value={search} onChange={e=>setSearch(e.target.value)}/>
@@ -726,11 +736,15 @@ function App(){
               </button>
             </div>
           )}
-          {filtered.length>0?filtered.map(l=>(
+          {filtered.length>0?(
+          <div className="leadgrid">
+          {filtered.map(l=>(
             activeTab==='Oppfølging'
               ? <OppfolgingCard key={l.id} lead={l} onEdit={setEditing} onMoveToKontakt={moveToKontakt} onSave={updateLeadLocally}/>
               : <LeadCard key={l.id} lead={l} activeTab={activeTab} onEdit={setEditing} onAction={onAction} messages={messages}/>
-          )):(
+          ))}
+          </div>
+          ):(
             <div style={{textAlign:'center',padding:'48px 24px',background:'white',borderRadius:16,border:'2px dashed var(--g200)'}}>
               <div style={{color:'var(--g300)',marginBottom:8,display:'flex',justifyContent:'center'}}><Ic.Inbox/></div>
               <p style={{color:'var(--g400)',fontWeight:700,fontSize:14}}>Ingen leads i denne fanen akkurat nå.</p>
@@ -742,14 +756,6 @@ function App(){
       {navTab==='meldinger'&&<MsgsTab messages={messages} setMessages={setMessages}/>}
       {navTab==='notater'&&<NotesTab/>}
 
-      {/* BOTTOM NAV */}
-      <div className="bnav">
-        {[['leads','Leads',<Ic.Users/>],['statistikk','Stats',<Ic.Bar/>],['meldinger','Meldinger',<Ic.Msg/>],['notater','Notater',<Ic.Note/>]].map(([id,lbl,ic])=>(
-          <button key={id} className={`nbtn ${navTab===id?'on':''}`} onClick={()=>setNavTab(id)}>
-            {ic}{lbl}
-          </button>
-        ))}
-      </div>
 
       {editing&&<EditModal lead={editing} onClose={()=>setEditing(null)} onSave={saveLead} saving={savingEdit}/>}
     </div>
