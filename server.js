@@ -108,13 +108,52 @@ const googleSok = (navn, plattform) =>
 
 async function placesDetails(placeId) {
   const url = `https://maps.googleapis.com/maps/api/place/details/json`
-    + `?place_id=${placeId}&fields=formatted_phone_number,website&language=no&key=${GOOGLE_PLACES_API_KEY}`;
+    + `?place_id=${placeId}&fields=formatted_phone_number,website,address_component,formatted_address&language=no&key=${GOOGLE_PLACES_API_KEY}`;
   const j = await (await fetch(url)).json();
   if (j.status !== 'OK') return {};
+  const komp = j.result?.address_components || [];
+  const finn = (typ) => (komp.find(c => (c.types || []).includes(typ)) || {}).long_name || null;
   return {
     telefon: j.result?.formatted_phone_number || null,
-    nettside: j.result?.website || null
+    nettside: j.result?.website || null,
+    // faktisk by fra adressen (postal_town/locality), ikke byen vi søkte på
+    byReell: finn('postal_town') || finn('locality') || finn('administrative_area_level_2') || null
   };
+}
+
+// ── Finn ekte FB/IG-profil ved å lese bedriftens nettside ──────────────────
+const FB_JUNK = /facebook\.com\/(sharer|share\.php|plugins|tr[\/?]|dialog|login|help|policies|privacy|business\b|ads\b|connect\b|v\d)/i;
+const IG_JUNK = /instagram\.com\/(p|reel|reels|tv|explore|accounts|about|legal|developer)\//i;
+
+function trekkProfil(html, domeneRe, junkRe) {
+  const treff = html.match(domeneRe) || [];
+  for (let u of treff) {
+    u = u.replace(/&amp;/g, '&').replace(/[.,);]+$/, '');
+    if (junkRe.test(u)) continue;
+    return u;
+  }
+  return null;
+}
+
+async function finnSosiale(website) {
+  if (!website || !/^https?:\/\//i.test(website)) return { fb: null, ig: null };
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 6000);
+    const r = await fetch(website, {
+      signal: ctrl.signal,
+      redirect: 'follow',
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VolumLeadBot/1.0)' }
+    });
+    clearTimeout(timer);
+    const html = await r.text();
+    return {
+      fb: trekkProfil(html, /https?:\/\/(?:[a-z0-9-]+\.)?facebook\.com\/[^"'\s<>)\\]+/ig, FB_JUNK),
+      ig: trekkProfil(html, /https?:\/\/(?:www\.)?instagram\.com\/[^"'\s<>)\\]+/ig, IG_JUNK)
+    };
+  } catch {
+    return { fb: null, ig: null };
+  }
 }
 
 app.post('/api/hent-leads', async (_req, res) => {
@@ -154,18 +193,20 @@ app.post('/api/hent-leads', async (_req, res) => {
       const navn = p.name;
       if (!navn || sett.has(navn.toLowerCase().trim())) continue;
       sett.add(navn.toLowerCase().trim());
-      let telefon = null, nettside = null;
-      try { ({ telefon, nettside } = await placesDetails(p.place_id)); } catch { /* hopp over */ }
+      let telefon = null, nettside = null, byReell = null;
+      try { ({ telefon, nettside, byReell } = await placesDetails(p.place_id)); } catch { /* hopp over */ }
+      let fb = null, ig = null;
+      try { ({ fb, ig } = await finnSosiale(nettside)); } catch { /* hopp over */ }
       nye.push({
         name: navn,
         phone: telefon,
         website: nettside,
-        fb: googleSok(navn, 'facebook'),
-        ig: googleSok(navn, 'instagram'),
+        fb,   // ekte facebook.com-profil fra nettsiden, ellers tomt
+        ig,   // ekte instagram.com-profil fra nettsiden, ellers tomt
         status: 'LEADs',
         level: 'Første kontakt',
         bransje,
-        by
+        by: byReell || by   // faktisk by fra adressen, fallback til søkebyen
       });
     }
 
