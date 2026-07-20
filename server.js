@@ -189,6 +189,7 @@ app.post('/api/hent-leads', async (_req, res) => {
 
     // 4. Bygg nye rader (henter telefon + nettside via Place Details)
     const nye = [];
+    let utenFb = 0;
     for (const p of funnet) {
       const navn = p.name;
       if (!navn || sett.has(navn.toLowerCase().trim())) continue;
@@ -197,6 +198,7 @@ app.post('/api/hent-leads', async (_req, res) => {
       try { ({ telefon, nettside, byReell } = await placesDetails(p.place_id)); } catch { /* hopp over */ }
       let fb = null, ig = null;
       try { ({ fb, ig } = await finnSosiale(nettside)); } catch { /* hopp over */ }
+      if (!fb) { utenFb++; continue; }   // Facebook er minimumskrav – ingen FB = ikke lagt inn
       nye.push({
         name: navn,
         phone: telefon,
@@ -224,7 +226,7 @@ app.post('/api/hent-leads', async (_req, res) => {
       funnet: funnet.length,
       lagt_til: lagtInn.length,
       neste: `${BRANSJER[nBransje]} ${BYER[nBy]}`,
-      melding: `Søkte «${query}» — fant ${funnet.length}, la til ${lagtInn.length} nye.`
+      melding: `Søkte «${query}» — fant ${funnet.length}, la til ${lagtInn.length} med Facebook (hoppet over ${utenFb} uten).`
     });
   } catch (e) {
     res.status(500).json({ feil: e.message });
