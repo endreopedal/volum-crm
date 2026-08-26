@@ -1,49 +1,71 @@
-# Volum Leads-CRM
+# Volum Kontroll
 
-Enkel lokal CRM. Kjører på `localhost`, lagrer alt i Supabase (`crm_leads`), og har én knapp
-som henter nye leads fra Google Places.
+Kontrollpanelet for alt du driver med. Kjører lokalt på **http://localhost:3000**
+og henter alt live fra Supabase.
 
-## Oppsett (én gang)
+## Sidene
 
-1. **Node 18+** må være installert (`node -v`).
-2. Legg filene i en mappe, åpne terminal i mappa.
-3. Kopier `.env.example` → `.env` og fyll inn:
+| Side | Hva den viser |
+|------|---------------|
+| **Oversikt** | Nøkkeltall på tvers av alt: leads, kunder, omsetning, agenter, poster, ideer — pluss salgstrakt, siste aktivitet og jobbkø. |
+| **I dag** | Daglig oppsummering: hva som skjedde, hva som står over fristen, hva som venter. Knappen «Oppsummer med Claude» skriver sammendraget i klartekst. |
+| **AI-agenter** | Live-kart over hele maskineriet. Prikkene som renner langs linjene viser hvilken vei dataene går. Klikk på en boks for å se hva den gjør og hva den henger sammen med. Filtrer på Volum.media, Mija eller Founders for å følge én historie av gangen. |
+| **Sosialt** | Alt av sosiale medier: publiseringstakt, hva som venter på godkjenning, hva som er publisert, resultater per post, kundenes ukesleveranser og lærdommene systemet har trukket. |
+| **Mija** | Butikken: omsetning, ordre, refusjoner, pakker, drops, besøk, nedlastinger, personvern og eksperimenter. |
+| **Ideer** | Nye bedriftsideer. «＋ Legg til ny bedrift» oppretter en, Claude kan vurdere en enkelt idé eller foreslå tre nye bygget på det du allerede har. |
+| **Founders** | Hele Founders-podcasten som kunnskapsbase — 448 episoder delt i 11 000 søkbare biter. Spør om hva som helst og få svar med henvisning til episode og tidspunkt. |
+| **Leads-CRM** | Den gamle CRM-en, uendret, på `/leads.html`. |
+
+## Oppsett
+
+1. **Node 18+** (`node -v`).
+2. Kopier `.env.example` → `.env` og fyll inn nøklene:
    ```
    cp .env.example .env
    ```
-   - `SUPABASE_SERVICE_KEY` — Supabase → Project Settings → API → **service_role** (secret).
-   - `GOOGLE_PLACES_API_KEY` — samme nøkkel du brukte i det gamle scriptet.
-   - `SUPABASE_URL` er allerede fylt inn (LEADS-prosjektet).
-4. Installer:
+3. Installer og start:
    ```
    npm install
+   npm start
    ```
+4. Åpne **http://localhost:3000**
 
-## Flytt de gamle leadsene inn (én gang)
+### Nøkler
+
+| Nøkkel | Trengs til | Uten den |
+|--------|-----------|----------|
+| `SUPABASE_SERVICE_KEY` | alt | appen starter ikke |
+| `ANTHROPIC_API_KEY` | Founders-svar, daglig oppsummering, idévurdering | de knappene sier fra at nøkkelen mangler — resten fungerer |
+| `OPENAI_API_KEY` | semantisk søk i podcasten | Founders-søket er avslått, episodelista virker |
+| `GOOGLE_PLACES_API_KEY` | «Hent flere leads» i CRM-en | knappen sier fra |
+
+Sidemenyen viser nederst hvilke nøkler som er på plass.
+
+**Merk om embeddings:** `OPENAI_API_KEY` brukes *kun* til å lage søkevektorer, og må
+være OpenAI. De 11 000 bitene i `podcast_chunks` er allerede lagret med
+`text-embedding-3-small` (1536 dimensjoner) — bytter du modell, matcher ikke
+vektorene og søket blir ubrukelig. Selve svarene skrives av Claude.
+
+## Slik henger det sammen
 
 ```
-node importer.js
+routes/     ett API-endepunkt per side  (/api/oversikt, /api/mija, …)
+lib/sb.js   Supabase (REST + SQL via ceo_readonly_query)
+lib/llm.js  Claude (claude-opus-5) + OpenAI-embeddings
+public/     dashbordet — React via Babel i nettleseren, ingen byggesteg
+  js/kjerne.js   felles komponenter og grafer
+  js/sider/      én fil per side
+  leads.html     den gamle CRM-en
 ```
-Henter de eksisterende leadsene fra arket og legger dem i Supabase. Kjør gjerne flere ganger —
-den hopper over det som allerede ligger inne.
 
-## Start appen
+React og Babel serveres fra `node_modules` via `/bibliotek/*`, så dashbordet
+tegner seg uten internett. Ingen byggesteg — rediger en fil under `public/` og
+last siden på nytt.
 
-```
-npm start
-```
-Åpne **http://localhost:3000**
+## Data
 
-## Bruk
+Alt ligger i Supabase-prosjektet **LEADS** (`krawpaxzwygnvoueykcc`). Dashbordet
+kun leser, med to unntak: bedriftsideer (`bedrift_ideer`) og leads-endringer
+skrives tilbake.
 
-- **＋ Hent flere leads** — søker én bransje+by i Google Places, legger nye leads i «Ny».
-  Neste trykk går videre til neste kombinasjon (rotasjonen huskes i Supabase).
-- Flytt en lead med **statusvelgeren** på kortet (Ny → Kontaktet → Venter → Møte booket).
-  Alt lagres automatisk i Supabase — appen husker alt neste gang du åpner den.
-- Bransjer og byer redigerer du øverst i `server.js` (`BRANSJER` / `BYER`).
-
-## Viktig
-
-- **Google billing må være aktivt** på Google Cloud-prosjektet, ellers svarer Places
-  `OVER_QUERY_LIMIT`. Appen sier fra i en rød melding hvis det skjer.
-- `.env` skal **aldri** pushes til GitHub (ligger i `.gitignore`).
+Tabellen `bedrift_ideer` ble lagt til for Ideer-siden. Resten var der fra før.
