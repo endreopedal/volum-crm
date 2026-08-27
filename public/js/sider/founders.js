@@ -1,7 +1,7 @@
 /* Founders — spør 448 episoder om hva grunnleggerne faktisk gjorde. */
 (() => {
-const { useState, useRef, api, useApi, n, dato, Laster, Feil, Kort, TallKort, Lapp,
-        Prosa, Topp, Tom, Stolper } = window.K;
+const { useState, useRef, api, useApi, n, dato, SkjelettSide, Laster, Feil, Kort, TallKort,
+        Lapp, Prosa, Topp, Tom, Stolper } = window.K;
 
 const FORSLAG = [
   'Hva gjorde grunnleggere når de nesten gikk konkurs?',
@@ -29,7 +29,7 @@ function Founders() {
     finally { settTenker(false); }
   }
 
-  if (laster) return <Laster tekst="Åpner podcast-arkivet …" />;
+  if (laster) return <SkjelettSide tall={2} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
   const { statistikk: s, episoder, perAar, klar, mangler } = data;

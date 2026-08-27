@@ -1,6 +1,7 @@
 // Sosiale medier: Mija (Instagram/TikTok) og Volum + kundene (Metricool, Google/Bing).
 const express = require('express');
 const { sbSql } = require('../lib/sb');
+const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
 
@@ -79,7 +80,7 @@ router.get('/', async (_req, res) => {
       ytelse, kundeinnhold, volumposter, playbook
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

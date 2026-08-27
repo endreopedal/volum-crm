@@ -1,7 +1,7 @@
 /* Daglig oppsummering — hva skjedde, hva står fast, hva gjør du i dag. */
 (() => {
-const { useState, api, useApi, n, nar, dato, kortDato, Laster, Feil, Kort, TallKort,
-        Lapp, StatusLapp, Prosa, Topp, Tabell, Tom } = window.K;
+const { useState, api, useApi, useAutoOppfrisk, n, nar, dato, kortDato, SkjelettSide, Laster,
+        Feil, Kort, TallKort, Lapp, StatusLapp, Prosa, Topp, Tabell, Tom, Trend } = window.K;
 
 function Daglig() {
   const [dager, settDager] = useState(1);
@@ -18,7 +18,7 @@ function Daglig() {
     finally { settKiLaster(false); }
   }
 
-  if (laster) return <Laster tekst="Samler dagens hendelser …" />;
+  if (laster) return <SkjelettSide tall={4} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
   const { nye_leads, ordre, poster, jobber, blogg, oppgaver, drops, feil: dodeJobber } = data;
@@ -79,10 +79,12 @@ function Daglig() {
               { n: 'Type', vis: (r) => <span className="dempet">{r.type || '–'}</span> },
               { n: 'Frist', num: true, vis: (r) => {
                 const over = r.forfaller && new Date(r.forfaller) < new Date();
-                return <span style={over ? { color: 'var(--advarsel)', fontWeight: 700 } : undefined}>{dato(r.forfaller)}</span>;
+                return <span style={over ? { color: 'var(--adv-blekk)', fontWeight: 700 } : undefined}>{dato(r.forfaller)}</span>;
               } }
             ]}
-            rader={oppgaver} tomTekst="Ingenting står åpent. 🎉" />
+            rader={oppgaver}
+            tom={<Tom ikon="🎉" tittel="Ingenting står åpent."
+                      tekst="Ingen oppgaver venter på deg akkurat nå." />} />
         </Kort>
 
         <Kort tittel="Nye leads" hoyre={`${nye_leads.length} i perioden`}>
@@ -93,7 +95,9 @@ function Daglig() {
               { n: 'By', vis: (r) => r.by || '–' },
               { n: 'Når', num: true, vis: (r) => <span className="dempet">{nar(r.created_at)}</span> }
             ]}
-            rader={nye_leads} tomTekst="Ingen nye leads i perioden." />
+            rader={nye_leads}
+            tom={<Tom ikon="🎯" tittel="Ingen nye leads i perioden."
+                      tekst="Hent flere i Leads-CRM-en, eller velg en lengre periode over." />} />
         </Kort>
       </div>
 

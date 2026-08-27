@@ -1,19 +1,19 @@
 /* AI-agenter — live simulasjon av hvordan alt henger sammen.
    Nodene og kantene er arkitekturen; tallene og pulsen er ekte data. */
 (() => {
-const { useState, useEffect, useRef, useApi, api, n, nar, Laster, Feil, Kort, TallKort,
-        Lapp, StatusLapp, Topp, Tabell, Tom, Modal } = window.K;
+const { useState, useEffect, useRef, useApi, useAutoOppfrisk, api, n, nar, SkjelettSide, Laster,
+        Feil, Kort, TallKort, Lapp, StatusLapp, Topp, Tabell, Tom, Modal } = window.K;
 
 // Grupper får hver sin farge, men har alltid ikon + navn i tillegg,
 // så fargen aldri er det eneste som skiller dem.
 const GRUPPE = {
-  kilde: { farge: '#6f6f7b', navn: 'Utenfra' },
+  kilde: { farge: 'var(--blekk-3)', navn: 'Utenfra' },
   data:  { farge: 'var(--serie-1)', navn: 'Lagret data' },
   agent: { farge: 'var(--serie-3)', navn: 'Volum-agent' },
   mija:  { farge: 'var(--serie-2)', navn: 'Mija-agent' },
   llm:   { farge: 'var(--serie-5)', navn: 'Språkmodell' },
   nav:   { farge: 'var(--serie-4)', navn: 'Navet' },
-  ut:    { farge: '#c2c2cc', navn: 'Ut i verden' }
+  ut:    { farge: 'var(--blekk-2)', navn: 'Ut i verden' }
 };
 
 // Hvilke noder som hører til hvilken historie — brukes av filterknappene.
@@ -150,7 +150,7 @@ function Simulasjon({ noder, kanter, spor, valgt, settValgt }) {
               <text x={p.x + 14} y={p.y + 37} style={{ fontSize: 10, fill: 'var(--blekk-3)' }}>
                 {n0.antall !== null ? `${n(n0.antall)} ${n0.enhet}` : (n0.tekst || '').slice(0, 24)}
               </text>
-              {n0.varsel && <circle cx={p.x + NB - 11} cy={p.y + 11} r="4" fill="var(--kritisk)" />}
+              {n0.varsel && <circle cx={p.x + NB - 11} cy={p.y + 11} r="4" fill="var(--kri)" />}
             </g>
           );
         })}
@@ -166,12 +166,9 @@ function Agenter() {
   const [valgt, settValgt] = useState(null);
 
   // Holder kartet ferskt uten at man trenger å laste siden på nytt.
-  useEffect(() => {
-    const t = setInterval(() => hentPaNytt(true), 20000);
-    return () => clearInterval(t);
-  }, [hentPaNytt]);
+  useAutoOppfrisk(hentPaNytt, 25);
 
-  if (laster) return <Laster tekst="Tegner kartet …" />;
+  if (laster) return <SkjelettSide tall={0} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
   const { noder, kanter, puls, koStatus, oppdatert } = data;
@@ -218,7 +215,7 @@ function Agenter() {
           {Object.entries(GRUPPE).map(([k, g]) => (
             <span key={k}><i style={{ background: g.farge }} />{g.navn}</span>
           ))}
-          <span><i style={{ background: 'var(--kritisk)', borderRadius: '50%' }} />Noe feiler</span>
+          <span><i style={{ background: 'var(--kri)', borderRadius: '50%' }} />Noe feiler</span>
         </div>
       </Kort>
 
@@ -249,7 +246,7 @@ function Agenter() {
                 <div className="tid-ikon">{p.status === 'dead' ? '🛑' : p.status === 'done' ? '✅' : '⏳'}</div>
                 <div className="tid-tekst">
                   <code style={{ fontSize: 12 }}>{p.type}</code>
-                  {p.feil && <div style={{ fontSize: 11.5, color: 'var(--kritisk)', marginTop: 2 }}
+                  {p.feil && <div style={{ fontSize: 11.5, color: 'var(--kri-blekk)', marginTop: 2 }}
                                   className="klipp" title={p.feil}>{p.feil}</div>}
                 </div>
                 <div className="tid-nar">{nar(p.updated_at)}</div>
@@ -288,7 +285,7 @@ function Agenter() {
               under={valgt.enhet || 'ingen teller'} />
             <TallKort merk="Sist aktiv" verdi={valgt.sist ? nar(valgt.sist) : '–'}
               under={valgt.varsel || 'alt normalt'}
-              farge={valgt.varsel ? 'var(--kritisk)' : undefined} />
+              farge={valgt.varsel ? 'var(--kri-blekk)' : undefined} />
           </div>
           <div style={{ marginTop: 14, fontSize: 13, color: 'var(--blekk-2)' }}>
             <b>Inn:</b> {kanter.filter((k) => k.til === valgt.id)

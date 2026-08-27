@@ -8,7 +8,12 @@ async function api(sti, valg) {
     headers: valg?.body ? { 'Content-Type': 'application/json' } : undefined
   });
   const j = await r.json().catch(() => ({ feil: `Serveren svarte ${r.status}` }));
-  if (!r.ok) throw new Error(j.feil || `Feil ${r.status}`);
+  if (!r.ok) {
+    const e = new Error(j.feil || `Feil ${r.status}`);
+    e.oppsett = Boolean(j.oppsett);   // nøklene mangler → send brukeren til oppsettet
+    e.status = r.status;
+    throw e;
+  }
   return j;
 }
 
@@ -24,7 +29,8 @@ function useApi(sti, avh = []) {
       setData(await api(sti));
       setFeil(null);
     } catch (e) {
-      setFeil(e.message);
+      setFeil(e);
+      if (e.oppsett) window.dispatchEvent(new CustomEvent('trengs-oppsett'));
     } finally {
       setLaster(false);
     }
@@ -34,9 +40,29 @@ function useApi(sti, avh = []) {
   return { data, feil, laster, hentPaNytt: hent };
 }
 
+/** Kaller hentPaNytt stille med jevne mellomrom, men bare når fanen er synlig. */
+function useAutoOppfrisk(hentPaNytt, sekunder = 60) {
+  useEffect(() => {
+    if (!sekunder) return;
+    const t = setInterval(() => {
+      if (document.visibilityState === 'visible') hentPaNytt(true);
+    }, sekunder * 1000);
+    return () => clearInterval(t);
+  }, [hentPaNytt, sekunder]);
+}
+
 // ── Formatering ───────────────────────────────────────────────────────
 const nf = new Intl.NumberFormat('nb-NO');
 const n = (v) => (v === null || v === undefined || v === '' ? '–' : nf.format(Number(v)));
+
+/** Store tall kortes ned: 11 151 → 11,2k. Brukes der plassen er trang. */
+function kort(v) {
+  const t = Number(v) || 0;
+  if (Math.abs(t) >= 1e6) return (t / 1e6).toLocaleString('nb-NO', { maximumFractionDigits: 1 }) + ' mill';
+  if (Math.abs(t) >= 10000) return (t / 1000).toLocaleString('nb-NO', { maximumFractionDigits: 1 }) + 'k';
+  return nf.format(t);
+}
+
 const kr = (cents, valuta = 'USD') =>
   (Number(cents || 0) / 100).toLocaleString('nb-NO', { style: 'currency', currency: valuta, maximumFractionDigits: 2 });
 
@@ -87,25 +113,81 @@ function markdown(tekst) {
   return ut;
 }
 
+/** Måler beholderbredden, så SVG-koordinater matcher skjermpiksler 1:1. */
+function useBredde(startVerdi = 620) {
+  const ref = useRef(null);
+  const [bredde, settBredde] = useState(startVerdi);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const mal = () => settBredde(Math.max(Math.round(el.clientWidth), 240));
+    mal();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(mal);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, bredde];
+}
+
 // ── Små komponenter ───────────────────────────────────────────────────
 const Laster = ({ tekst = 'Henter …' }) => (
-  <div className="laster"><div className="snurr" />{tekst}</div>
+  <div className="laster"><span className="snurr" />{tekst}</div>
+);
+
+/** Skjelett i formen til det som kommer — roligere enn en spinner. */
+const Skjelett = ({ h = 14, b = '100%', r, stil }) => (
+  <div className="skjelett" style={{ height: h, width: b, borderRadius: r, ...stil }} />
+);
+
+const SkjelettSide = ({ tall = 4, kort: antKort = 2 }) => (
+  <>
+    <div style={{ marginBottom: 22 }}>
+      <Skjelett h={30} b={240} stil={{ marginBottom: 9 }} />
+      <Skjelett h={15} b={430} />
+    </div>
+    <div className="rutenett r4" style={{ marginBottom: 13 }}>
+      {Array.from({ length: tall }, (_, i) => (
+        <div className="tall-kort" key={i}>
+          <Skjelett h={10} b={72} stil={{ marginBottom: 9 }} />
+          <Skjelett h={27} b={104} stil={{ marginBottom: 8 }} />
+          <Skjelett h={12} b={130} />
+        </div>
+      ))}
+    </div>
+    <div className="rutenett r2">
+      {Array.from({ length: antKort }, (_, i) => (
+        <div className="kort" key={i}>
+          <Skjelett h={14} b={150} stil={{ marginBottom: 16 }} />
+          {[92, 78, 86, 62].map((b, j) => (
+            <Skjelett key={j} h={13} b={b + '%'} stil={{ marginBottom: 11 }} />
+          ))}
+        </div>
+      ))}
+    </div>
+  </>
 );
 
 const Feil = ({ melding, paNytt }) => (
   <div className="beskjed beskjed-kri">
     <span>⚠️</span>
     <div style={{ flex: 1 }}>
-      <b>Noe gikk galt.</b> {melding}
-      {paNytt && <div style={{ marginTop: 8 }}>
-        <button className="kn kn-s" onClick={paNytt}>Prøv igjen</button>
+      <b>Noe gikk galt.</b> {typeof melding === 'string' ? melding : melding?.message}
+      {paNytt && <div style={{ marginTop: 9 }}>
+        <button className="kn kn-s" onClick={() => paNytt()}>Prøv igjen</button>
       </div>}
     </div>
   </div>
 );
 
-const Tom = ({ ikon = '📭', tekst }) => (
-  <div className="tom"><span className="tom-ikon">{ikon}</span>{tekst}</div>
+/** Tom tilstand som forklarer hvorfor det er tomt, ikke bare at det er det. */
+const Tom = ({ ikon = '📭', tittel, tekst, handling }) => (
+  <div className="tom">
+    <span className="tom-ikon">{ikon}</span>
+    {tittel && <b>{tittel}</b>}
+    {tekst}
+    {handling && <div style={{ marginTop: 13 }}>{handling}</div>}
+  </div>
 );
 
 const Kort = ({ tittel, hint, hoyre, children, ...rest }) => (
@@ -121,11 +203,47 @@ const Kort = ({ tittel, hint, hoyre, children, ...rest }) => (
   </div>
 );
 
-const TallKort = ({ merk, verdi, under, farge, onClick }) => (
-  <div className={'tall-kort' + (onClick ? ' klikk' : '')} onClick={onClick}>
+/** Endring mot forrige periode. Retningen fargelegges, aldri tallet alene. */
+function Trend({ na, for: forrige, snuFarge, enhet = '%' }) {
+  if (forrige === null || forrige === undefined) return null;
+  const a = Number(na) || 0, b = Number(forrige) || 0;
+  if (b === 0 && a === 0) return <span className="trend trend-flat">uendret</span>;
+  const diff = b === 0 ? 100 : Math.round(((a - b) / Math.abs(b)) * 100);
+  if (diff === 0) return <span className="trend trend-flat">uendret</span>;
+  const opp = diff > 0;
+  const bra = snuFarge ? !opp : opp;
+  return (
+    <span className={'trend ' + (bra ? 'trend-opp' : 'trend-ned')}>
+      {opp ? '↑' : '↓'} {Math.abs(diff)}{enhet}
+    </span>
+  );
+}
+
+/** Bittelite forløp bak et nøkkeltall. Bærer aldri mening alene. */
+function Gnist({ verdier, farge = 'var(--serie-1)' }) {
+  if (!verdier?.length || verdier.length < 2) return null;
+  const B = 120, H = 34;
+  const tall = verdier.map((v) => Number(v) || 0);
+  const maks = Math.max(...tall), min = Math.min(...tall);
+  const spenn = maks - min || 1;
+  const p = tall.map((v, i) => `${(i / (tall.length - 1)) * B},${H - 3 - ((v - min) / spenn) * (H - 8)}`);
+  return (
+    <svg className="tall-gnist" viewBox={`0 0 ${B} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+      <polyline points={`0,${H} ${p.join(' ')} ${B},${H}`} fill={farge} opacity=".13" />
+      <polyline points={p.join(' ')} fill="none" stroke={farge} strokeWidth="1.6"
+                vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+const TallKort = ({ merk, verdi, under, farge, onClick, trend, gnist, gnistFarge }) => (
+  <div className={'tall-kort' + (onClick ? ' klikk' : '')} onClick={onClick}
+       role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined}
+       onKeyDown={onClick ? (e) => (e.key === 'Enter' || e.key === ' ') && onClick() : undefined}>
+    {gnist && <Gnist verdier={gnist} farge={gnistFarge || farge || 'var(--serie-1)'} />}
     <div className="tall-merk">{merk}</div>
     <div className="tall-verdi" style={farge ? { color: farge } : undefined}>{verdi}</div>
-    <div className="tall-under">{under}</div>
+    <div className="tall-under">{trend}{under}</div>
   </div>
 );
 
@@ -140,7 +258,6 @@ function statusType(s) {
   if (['dead', 'failed', 'refunded', 'error', 'feilet'].includes(t)) return 'kri';
   if (['awaiting_approval', 'queued', 'pending', 'venter', 'ready', 'candidate'].includes(t)) return 'adv';
   if (['running', 'scheduled', 'planlagt', 'bygges', 'vurderes'].includes(t)) return 'inf';
-  if (['archived', 'parkert', 'inaktiv', 'pause'].includes(t)) return '';
   return '';
 }
 const StatusLapp = ({ status }) => <Lapp type={statusType(status)}>{status || '–'}</Lapp>;
@@ -149,7 +266,6 @@ const Prosa = ({ tekst }) => (
   <div className="prosa" dangerouslySetInnerHTML={{ __html: markdown(tekst) }} />
 );
 
-/** Sidehode med tittel, forklaring og knapper. */
 const Topp = ({ tittel, under, children }) => (
   <div className="topp">
     <div>
@@ -168,7 +284,7 @@ const Modal = ({ tittel, onLukk, bunn, children }) => {
   }, [onLukk]);
   return (
     <div className="dekke" onClick={(e) => e.target === e.currentTarget && onLukk()}>
-      <div className="ark">
+      <div className="ark" role="dialog" aria-modal="true">
         <div className="ark-topp">
           <h3>{tittel}</h3>
           <button className="kn kn-s" style={{ marginLeft: 'auto' }} onClick={onLukk}>Lukk</button>
@@ -181,38 +297,20 @@ const Modal = ({ tittel, onLukk, bunn, children }) => {
 };
 
 // ── Grafer ────────────────────────────────────────────────────────────
-// Alle grafer: tynne merker, én akse, dempet rutenett, verdi på hover.
+// Tynne merker, én akse, dempet rutenett. Verdien vises direkte når det er
+// plass — i lys modus har flere av seriefargene lav kontrast mot hvitt, og da
+// er en synlig etikett det som gjør stolpen lesbar uansett syn.
 
-/** Måler bredden på en beholder, så SVG-koordinater kan matche skjermpiksler 1:1.
-    Uten dette skalerer nettleseren akseteksten opp eller ned med grafen. */
-function useBredde(startVerdi = 620) {
-  const ref = useRef(null);
-  const [bredde, settBredde] = useState(startVerdi);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const mal = () => settBredde(Math.max(Math.round(el.clientWidth), 240));
-    mal();
-    if (typeof ResizeObserver === 'undefined') return;
-    const ro = new ResizeObserver(mal);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return [ref, bredde];
-}
-
-/** Stolpediagram over tid. rader = [{etikett, verdi}] */
 function Stolper({ rader, hoyde = 170, farge = 'var(--serie-1)', format = n, enhet = '' }) {
   const [over, settOver] = useState(null);
   const [ref, ytre] = useBredde();
   if (!rader?.length) return <Tom ikon="📊" tekst="Ingen data i perioden ennå." />;
 
-  const V = 46, T = 10, H = hoyde, MIN_B = 18;
-  // Stolpene deler den faktiske bredden. Blir de for smale, vokser grafen
-  // utover og beholderen får vannrett rulling i stedet.
+  const V = 46, T = 16, H = hoyde, MIN_B = 18;
   const B = Math.max((ytre - V) / rader.length, MIN_B);
   const bredde = Math.max(V + B * rader.length, ytre);
   const stolpeB = Math.min(B - 9, 46);
+  const visVerdier = B >= 44;   // nok plass til å skrive tallet over stolpen
 
   const maks = Math.max(...rader.map((r) => Number(r.verdi) || 0), 1);
   const y = (v) => T + (H - T) * (1 - (Number(v) || 0) / maks);
@@ -222,7 +320,6 @@ function Stolper({ rader, hoyde = 170, farge = 'var(--serie-1)', format = n, enh
   return (
     <div ref={ref} style={{ position: 'relative', overflowX: bredde > ytre ? 'auto' : 'visible' }}>
       <svg className="graf" viewBox={`0 0 ${bredde} ${H + 26}`} width={bredde} height={H + 26}
-           style={{ maxWidth: 'none' }}
            role="img" aria-label={`Stolpediagram, ${rader.length} punkter`}>
         {ticks.map((t, i) => (
           <g key={i}>
@@ -239,7 +336,11 @@ function Stolper({ rader, hoyde = 170, farge = 'var(--serie-1)', format = n, enh
             <g key={i} onMouseEnter={() => settOver(i)} onMouseLeave={() => settOver(null)}>
               <rect x={V + i * B} y={T} width={B} height={H - T} fill="transparent" />
               <rect className="stolpe" x={midt - stolpeB / 2} y={H - h} width={stolpeB} height={h}
-                    rx="4" fill={farge} opacity={over === null || over === i ? 1 : .45} />
+                    rx="4" fill={farge} opacity={over === null || over === i ? 1 : .4} />
+              {visVerdier && v > 0 && (
+                <text className="graf-akse" x={midt} y={H - h - 5} textAnchor="middle"
+                      style={{ fill: 'var(--blekk-2)', fontWeight: 700 }}>{format(v)}</text>
+              )}
               {i % hvert === 0 && (
                 <text className="graf-akse" x={midt} y={H + 16} textAnchor="middle">{r.etikett}</text>
               )}
@@ -247,13 +348,9 @@ function Stolper({ rader, hoyde = 170, farge = 'var(--serie-1)', format = n, enh
           );
         })}
       </svg>
-      {over !== null && (
-        <div style={{
-          position: 'absolute', top: 0, right: 0, background: 'var(--flate-3)',
-          border: '1px solid var(--kant-sterk)', borderRadius: 9, padding: '7px 11px',
-          fontSize: 12, pointerEvents: 'none', whiteSpace: 'nowrap', zIndex: 2
-        }}>
-          <div style={{ color: 'var(--blekk-3)' }}>{rader[over].etikett}</div>
+      {over !== null && !visVerdier && (
+        <div className="hint-boks" style={{ top: 0, right: 0 }}>
+          <div className="dempet">{rader[over].etikett}</div>
           <b style={{ fontSize: 15 }}>{format(rader[over].verdi)}{enhet}</b>
         </div>
       )}
@@ -284,13 +381,13 @@ function Rangering({ rader, farge = 'var(--serie-1)', format = n, maksRader = 10
   );
 }
 
-/** Andelsfordeling som én vannrett stripe + forklaring. */
+/** Andelsfordeling som én stripe + forklaring med tall. */
 function Fordeling({ rader, format = n }) {
   const sum = rader.reduce((s, r) => s + (Number(r.verdi) || 0), 0);
   if (!sum) return <Tom ikon="📊" tekst="Ingen data ennå." />;
   return (
     <div>
-      <div style={{ display: 'flex', height: 30, borderRadius: 7, overflow: 'hidden', gap: 2 }}>
+      <div style={{ display: 'flex', height: 28, borderRadius: 7, overflow: 'hidden', gap: 2 }}>
         {rader.map((r, i) => {
           const p = (Number(r.verdi) || 0) / sum * 100;
           if (p <= 0) return null;
@@ -302,7 +399,7 @@ function Fordeling({ rader, format = n }) {
         {rader.filter((r) => Number(r.verdi) > 0).map((r, i) => (
           <span key={i}>
             <i style={{ background: r.farge || serie(i) }} />
-            {r.etikett} <b style={{ color: 'var(--blekk)' }}>{format(r.verdi)}</b>
+            {r.etikett} <b>{format(r.verdi)}</b>
           </span>
         ))}
       </div>
@@ -311,21 +408,21 @@ function Fordeling({ rader, format = n }) {
 }
 
 /** Kompakt tabell. kolonner = [{n, felt, num, bredde, vis}] */
-function Tabell({ kolonner, rader, tomTekst = 'Ingenting her ennå.', nokkel }) {
-  if (!rader?.length) return <Tom tekst={tomTekst} />;
+function Tabell({ kolonner, rader, tom, tomTekst = 'Ingenting her ennå.', nokkel }) {
+  if (!rader?.length) return tom || <Tom tekst={tomTekst} />;
   return (
     <div className="tab-boks">
       <table>
         <thead>
-          <tr>{kolonner.map((k, i) => <th key={i} className={k.num ? 'num' : ''} style={k.bredde ? { width: k.bredde } : undefined}>{k.n}</th>)}</tr>
+          <tr>{kolonner.map((k, i) => (
+            <th key={i} className={k.num ? 'num' : ''} style={k.bredde ? { width: k.bredde } : undefined}>{k.n}</th>
+          ))}</tr>
         </thead>
         <tbody>
           {rader.map((r, i) => (
             <tr key={nokkel ? r[nokkel] : i}>
               {kolonner.map((k, j) => (
-                <td key={j} className={k.num ? 'num' : ''}>
-                  {k.vis ? k.vis(r) : (r[k.felt] ?? '–')}
-                </td>
+                <td key={j} className={k.num ? 'num' : ''}>{k.vis ? k.vis(r) : (r[k.felt] ?? '–')}</td>
               ))}
             </tr>
           ))}
@@ -337,7 +434,8 @@ function Tabell({ kolonner, rader, tomTekst = 'Ingenting her ennå.', nokkel }) 
 
 window.K = {
   React, useState, useEffect, useRef, useCallback, useMemo,
-  api, useApi, n, kr, nar, dato, kortDato, serie, SERIER, markdown, statusType,
-  Laster, Feil, Tom, Kort, TallKort, Lapp, StatusLapp, Prosa, Topp, Modal, useBredde,
-  Stolper, Rangering, Fordeling, Tabell
+  api, useApi, useAutoOppfrisk, useBredde,
+  n, kort, kr, nar, dato, kortDato, serie, SERIER, markdown, statusType,
+  Laster, Skjelett, SkjelettSide, Feil, Tom, Kort, TallKort, Trend, Gnist,
+  Lapp, StatusLapp, Prosa, Topp, Modal, Stolper, Rangering, Fordeling, Tabell
 };

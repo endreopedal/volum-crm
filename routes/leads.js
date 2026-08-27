@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const { sbSelect, sbInsert, sbPatch, sbDelete } = require('../lib/sb');
+const { svarFeil } = require('../lib/feil');
 
 const { GOOGLE_PLACES_API_KEY } = process.env;
 const router = express.Router();
@@ -34,7 +35,7 @@ const BYER = [
 // Alle leads
 router.get('/', async (_req, res) => {
   try { res.json(await sbSelect('crm_leads?select=*&order=created_at.desc')); }
-  catch (e) { res.status(500).json({ feil: e.message }); }
+  catch (e) { svarFeil(res, e); }
 });
 
 // Ny lead manuelt
@@ -47,7 +48,7 @@ router.post('/', async (req, res) => {
       status: 'LEADs', level: 'Første kontakt'
     }]);
     res.json(rows[0]);
-  } catch (e) { res.status(500).json({ feil: e.message }); }
+  } catch (e) { svarFeil(res, e); }
 });
 
 // Oppdater lead (status, notat osv.) — persisterer i Supabase
@@ -59,13 +60,13 @@ router.patch('/:id', async (req, res) => {
     if (!Object.keys(patch).length) return res.status(400).json({ feil: 'Ingenting å oppdatere.' });
     const rows = await sbPatch('crm_leads', `id=eq.${req.params.id}`, patch);
     res.json(rows[0]);
-  } catch (e) { res.status(500).json({ feil: e.message }); }
+  } catch (e) { svarFeil(res, e); }
 });
 
 // Slett lead
 router.delete('/:id', async (req, res) => {
   try { await sbDelete('crm_leads', `id=eq.${req.params.id}`); res.json({ ok: true }); }
-  catch (e) { res.status(500).json({ feil: e.message }); }
+  catch (e) { svarFeil(res, e); }
 });
 
 // ── Google Places: "Hent flere leads" ──────────────────────────────
@@ -212,7 +213,7 @@ router.post('/hent-leads', async (_req, res) => {
       melding: `Søkte «${query}» — fant ${funnet.length}, la til ${lagtInn.length} med Facebook (hoppet over ${utenFb} uten).`
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

@@ -1,11 +1,12 @@
 /* Mija — butikken: salg, betaling, besøk, drops og levering. */
 (() => {
-const { useApi, n, kr, nar, dato, kortDato, Laster, Feil, Kort, TallKort, Lapp,
-        StatusLapp, Topp, Tabell, Tom, Stolper, Rangering, Fordeling, serie } = window.K;
+const { useApi, useAutoOppfrisk, n, kr, nar, dato, kortDato, SkjelettSide, Feil, Kort, TallKort,
+        Lapp, StatusLapp, Topp, Tabell, Tom, Stolper, Rangering, Fordeling, serie } = window.K;
 
 function Mija() {
   const { data, feil, laster, hentPaNytt } = useApi('/api/mija');
-  if (laster) return <Laster tekst="Henter tall fra butikken …" />;
+  useAutoOppfrisk(hentPaNytt, 120);
+  if (laster) return <SkjelettSide tall={4} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
   const { tall: t, omsetningPerDag, ordre, drops, pakker, trafikk, nedlastinger, land, jobber, samtykke, eksperimenter } = data;
@@ -43,10 +44,10 @@ function Mija() {
           under={`${n(t.kunder)} unike kunder`} />
         <TallKort merk="Etter byggekostnad" verdi={margin.toLocaleString('nb-NO', { style: 'currency', currency: 'USD' })}
           under={`$${byggkost.toFixed(2)} brukt på bildegenerering`}
-          farge={margin >= 0 ? undefined : 'var(--kritisk)'} />
+          farge={margin >= 0 ? undefined : 'var(--kri-blekk)'} />
         <TallKort merk="Refusjoner" verdi={n(refunderte)}
           under={refunderte ? <Lapp type="adv">{Math.round(refunderte / Math.max(betalte + refunderte, 1) * 100)} % av ordrene</Lapp> : 'ingen'}
-          farge={refunderte ? 'var(--alvorlig)' : undefined} />
+          farge={refunderte ? 'var(--adv-blekk)' : undefined} />
       </div>
 
       <div className="rutenett r4" style={{ marginBottom: 14 }}>
@@ -89,7 +90,9 @@ function Mija() {
               { n: 'Solgt', num: true, felt: 'solgt' },
               { n: 'Inntekt', num: true, vis: (r) => <b>{kr(r.inntekt_cents, r.currency)}</b> }
             ]}
-            rader={pakker} tomTekst="Ingen pakker ennå." />
+            rader={pakker}
+            tom={<Tom ikon="📦" tittel="Ingen pakker ennå."
+                      tekst="Pakker lages når et drop bygges." />} />
         </Kort>
 
         <Kort tittel="Siste ordre" hoyre={`${ordre.length} nyeste`}>

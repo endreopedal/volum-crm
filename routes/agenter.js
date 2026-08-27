@@ -5,6 +5,7 @@
 // fra jobs-tabellen som frontend animerer langs kantene.
 const express = require('express');
 const { sbSql, sbSelect } = require('../lib/sb');
+const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
 
@@ -149,7 +150,7 @@ router.get('/graf', async (_req, res) => {
       oppdatert: new Date().toISOString()
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -170,7 +171,7 @@ router.get('/liste', async (_req, res) => {
       }))
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

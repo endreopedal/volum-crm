@@ -2,6 +2,7 @@
 const express = require('express');
 const { sbSql } = require('../lib/sb');
 const { spor, harClaude } = require('../lib/llm');
+const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ router.get('/', async (req, res) => {
     const dager = Math.min(Math.max(Number(req.query.dager) || 1, 1), 30);
     res.json({ dager, ...(await samleDagsdata(dager)) });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -67,7 +68,7 @@ router.post('/oppsummer', async (req, res) => {
     );
     res.json({ dager, tekst, generert: new Date().toISOString() });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

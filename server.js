@@ -2,12 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 
-const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('❌ Mangler SUPABASE_URL eller SUPABASE_SERVICE_KEY i .env');
-  process.exit(1);
-}
-
+// Appen starter selv om nøklene mangler — da møter du oppsettsiden i
+// nettleseren i stedet for en feilmelding i terminalen.
 // Dashbordet skal alltid ligge på localhost:3000.
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -28,6 +24,7 @@ for (const [rute, fil] of Object.entries(BIBLIOTEK)) {
 }
 
 // ── API ────────────────────────────────────────────────────────────
+app.use('/api/oppsett', require('./routes/oppsett'));
 app.use('/api/leads', require('./routes/leads'));
 app.use('/api/oversikt', require('./routes/oversikt'));
 app.use('/api/daglig', require('./routes/daglig'));
@@ -36,11 +33,12 @@ app.use('/api/mija', require('./routes/mija'));
 app.use('/api/ideer', require('./routes/ideer'));
 app.use('/api/agenter', require('./routes/agenter'));
 app.use('/api/sosialt', require('./routes/sosialt'));
+app.use('/api/sok', require('./routes/sok'));
 
 // Hvilke nøkler som faktisk er på plass — styrer varslene i grensesnittet.
 app.get('/api/status', (_req, res) => {
   res.json({
-    supabase: true,
+    supabase: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY),
     claude: Boolean(process.env.ANTHROPIC_API_KEY),
     embeddings: Boolean(process.env.OPENAI_API_KEY),
     google_places: Boolean(process.env.GOOGLE_PLACES_API_KEY),
@@ -50,19 +48,28 @@ app.get('/api/status', (_req, res) => {
 
 app.use('/api', (_req, res) => res.status(404).json({ feil: 'Ukjent endepunkt' }));
 
+// Feil fra rutene ender her. Mangler nøklene, sier vi det tydelig så
+// grensesnittet kan sende brukeren til oppsettet i stedet for å vise en rå feil.
+app.use('/api', (feil, _req, res, _next) => {
+  if (feil?.oppsettMangler) return res.status(503).json({ feil: feil.message, oppsett: true });
+  res.status(500).json({ feil: feil?.message || 'Ukjent feil' });
+});
+
 // Alt annet er dashbordet — klienten håndterer sine egne stier.
 app.get('*', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-app.listen(PORT, () => {
-  console.log(`\n✅ Volum Kontroll kjører på http://localhost:${PORT}\n`);
-  const mangler = [
-    !process.env.ANTHROPIC_API_KEY && 'ANTHROPIC_API_KEY (Founders-svar, daglig oppsummering, idévurdering)',
-    !process.env.OPENAI_API_KEY && 'OPENAI_API_KEY (semantisk søk i podcasten)',
-    !process.env.GOOGLE_PLACES_API_KEY && 'GOOGLE_PLACES_API_KEY (hente nye leads)'
-  ].filter(Boolean);
-  if (mangler.length) {
-    console.log('⚠️  Disse sidene er avslått til nøklene ligger i .env:');
-    mangler.forEach((m) => console.log('   • ' + m));
-    console.log('');
+app.listen(PORT, '127.0.0.1', () => {
+  const adresse = `http://localhost:${PORT}`;
+  console.log(`\n  ✦  Volum Kontroll\n     ${adresse}\n`);
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    console.log('     Nøklene mangler ennå — åpne adressen over, så');
+    console.log('     tar oppsettet deg gjennom det. Ingen terminal nødvendig.\n');
+  } else {
+    const mangler = [
+      !process.env.ANTHROPIC_API_KEY && 'Claude',
+      !process.env.OPENAI_API_KEY && 'podcast-søk',
+      !process.env.GOOGLE_PLACES_API_KEY && 'Google Places'
+    ].filter(Boolean);
+    if (mangler.length) console.log(`     Avslått til nøkkel er lagt inn: ${mangler.join(', ')}\n`);
   }
 });

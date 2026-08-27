@@ -1,6 +1,7 @@
 // Alt for Mija: salg, betaling, besøk, drops, pakker, nedlastinger og personvern.
 const express = require('express');
 const { sbSql } = require('../lib/sb');
+const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
 
@@ -81,7 +82,7 @@ router.get('/', async (_req, res) => {
       nedlastinger, land, jobber, samtykke, eksperimenter
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

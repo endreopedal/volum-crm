@@ -2,6 +2,7 @@
 const express = require('express');
 const { sbSelect, sbInsert, sbPatch, sbDelete, sbSql } = require('../lib/sb');
 const { spor, sporJson, harClaude } = require('../lib/llm');
+const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
 
@@ -38,7 +39,7 @@ router.get('/', async (_req, res) => {
     ]);
     res.json({ ideer, fordeling, statuser: STATUSER, kiKlar: harClaude() });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -52,7 +53,7 @@ router.post('/', async (req, res) => {
     const [ny] = await sbInsert('bedrift_ideer', [rad]);
     res.json(ny);
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -63,7 +64,7 @@ router.patch('/:id', async (req, res) => {
     const [oppdatert] = await sbPatch('bedrift_ideer', `id=eq.${req.params.id}`, rad);
     res.json(oppdatert);
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -72,7 +73,7 @@ router.delete('/:id', async (req, res) => {
     await sbDelete('bedrift_ideer', `id=eq.${req.params.id}`);
     res.json({ ok: true });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -97,7 +98,7 @@ router.post('/:id/vurder', async (req, res) => {
     });
     res.json({ vurdering: tekst });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -167,7 +168,7 @@ Vær konkret — «AI-plattform for bedrifter» er ikke en idé, det er en flosk
     );
     res.json({ lagt_til: lagt.length, ideer: lagt });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

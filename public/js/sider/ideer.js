@@ -1,6 +1,6 @@
 /* Nye bedriftsideer — legg til, flytt, la Claude vurdere eller foreslå. */
 (() => {
-const { useState, api, useApi, n, nar, dato, Laster, Feil, Kort, TallKort, Lapp, Prosa,
+const { useState, api, useApi, n, nar, dato, SkjelettSide, Feil, Kort, TallKort, Lapp, Prosa,
         Topp, Tom, Modal, serie } = window.K;
 
 const STATUS_NAVN = { ide: 'Idé', vurderes: 'Vurderes', bygges: 'Bygges', live: 'Live', parkert: 'Parkert' };
@@ -112,7 +112,7 @@ function Ideer() {
     finally { settForeslar(false); }
   }
 
-  if (laster) return <Laster tekst="Henter ideene …" />;
+  if (laster) return <SkjelettSide tall={4} kort={3} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
   const { ideer, fordeling, kiKlar } = data;
@@ -153,7 +153,9 @@ function Ideer() {
       </div>
 
       {!vist.length ? (
-        <Kort><Tom ikon="💡" tekst="Ingen ideer her. Trykk «Legg til ny bedrift» for å begynne." /></Kort>
+        <Kort><Tom ikon="💡" tittel="Ingen ideer her."
+               tekst="Legg inn den første, eller la Claude foreslå tre bygget på det du allerede har."
+               handling={<button className="kn kn-p" onClick={() => { settNy({ ...TOMT }); settSkjemaFeil(null); }}>＋ Legg til ny bedrift</button>} /></Kort>
       ) : (
         <div className="rutenett r3">
           {vist.map((i) => (

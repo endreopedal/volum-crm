@@ -6,6 +6,7 @@
 const express = require('express');
 const { sbSql, sbRpc, sbSelect } = require('../lib/sb');
 const { spor, embed, harClaude, harEmbedding } = require('../lib/llm');
+const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
 
@@ -45,7 +46,7 @@ router.get('/', async (_req, res) => {
       ].filter(Boolean)
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -90,7 +91,7 @@ router.post('/spor', async (req, res) => {
       }))
     });
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 
@@ -103,7 +104,7 @@ router.get('/episode/:id', async (req, res) => {
     if (!rader.length) return res.status(404).json({ feil: 'Fant ikke episoden' });
     res.json(rader[0]);
   } catch (e) {
-    res.status(500).json({ feil: e.message });
+    svarFeil(res, e);
   }
 });
 

@@ -1,13 +1,14 @@
 /* Sosiale medier — Mija (IG/TikTok) og Volum + kundene (Metricool, Google/Bing). */
 (() => {
-const { useApi, n, kr, nar, dato, kortDato, Laster, Feil, Kort, TallKort, Lapp,
-        StatusLapp, Topp, Tabell, Tom, Stolper, Rangering, Fordeling, serie } = window.K;
+const { useApi, useAutoOppfrisk, n, kr, nar, dato, kortDato, SkjelettSide, Feil, Kort, TallKort,
+        Lapp, StatusLapp, Topp, Tabell, Tom, Stolper, Rangering, Fordeling, serie } = window.K;
 
 const KANAL_IKON = { instagram: '📸', tiktok: '🎵', facebook: '👥', linkedin: '💼', x: '𝕏' };
 
 function Sosialt() {
   const { data, feil, laster, hentPaNytt } = useApi('/api/sosialt');
-  if (laster) return <Laster tekst="Henter poster og tall …" />;
+  useAutoOppfrisk(hentPaNytt, 120);
+  if (laster) return <SkjelettSide tall={4} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
   const { tall: t, perPlattform, perStatus, kommende, publisert, perDag, ytelse, kundeinnhold, volumposter, playbook } = data;
@@ -69,7 +70,7 @@ function Sosialt() {
           <Fordeling rader={perStatus.map((s) => ({
             etikett: s.status, verdi: s.antall,
             farge: s.status === 'published' ? 'var(--serie-3)'
-              : s.status === 'failed' ? 'var(--kritisk)'
+              : s.status === 'failed' ? 'var(--kri)'
               : s.status === 'awaiting_approval' ? 'var(--serie-4)' : serie(0)
           }))} />
           <div style={{ marginTop: 18 }}>
@@ -91,7 +92,9 @@ function Sosialt() {
               { n: 'Status', vis: (r) => <StatusLapp status={r.status} /> },
               { n: 'Går ut', num: true, vis: (r) => <span className="dempet">{nar(r.scheduled_at)}</span> }
             ]}
-            rader={kommende} tomTekst="Ingenting står i kø." />
+            rader={kommende}
+            tom={<Tom ikon="✅" tittel="Ingenting står i kø."
+                      tekst="Alt som var planlagt er publisert." />} />
         </Kort>
 
         <Kort tittel="Sist publisert" hoyre={`${publisert.length} siste`}>
