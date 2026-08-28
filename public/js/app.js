@@ -189,8 +189,7 @@ function App() {
           </div>
         </div>
 
-        <button className="kn" style={{ width: '100%', justifyContent: 'flex-start', marginBottom: 6 }}
-                onClick={() => settSokApen(true)}>
+        <button className="kn sok-knapp" onClick={() => settSokApen(true)}>
           <span>🔍</span> Søk
           <kbd style={{ marginLeft: 'auto' }}>⌘K</kbd>
         </button>
@@ -225,7 +224,7 @@ function App() {
             <span className="nav-ikon">🔑</span>
             <span style={{ fontSize: 12.5 }}>Nøkler</span>
             {status && !(status.claude && status.embeddings) && (
-              <span className="nav-tall" style={{ background: 'var(--adv-svak)', color: 'var(--adv-blekk)' }}>!</span>
+              <span className="nav-tall" style={{ background: 'var(--adv-glo)', color: 'var(--adv-blekk)' }}>!</span>
             )}
           </button>
         </div>

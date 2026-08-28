@@ -140,7 +140,7 @@ function Simulasjon({ noder, kanter, spor, valgt, settValgt }) {
             <g key={n0.id} opacity={pa ? 1 : .16} style={{ cursor: 'pointer' }}
                onClick={() => settValgt(n0)}>
               <rect x={p.x} y={p.y} width={NB} height={NH} rx="11"
-                    fill={erValgt ? 'var(--flate-3)' : 'var(--flate-2)'}
+                    fill={erValgt ? 'var(--glass-3)' : 'var(--glass-2)'}
                     stroke={erValgt ? g.farge : 'var(--kant)'} strokeWidth={erValgt ? 2 : 1} />
               <rect x={p.x} y={p.y} width="3.5" height={NH} rx="2" fill={g.farge} />
               <text x={p.x + 14} y={p.y + 21} style={{ fontSize: 13 }}>{n0.ikon}</text>

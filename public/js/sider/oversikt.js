@@ -6,9 +6,9 @@ const { useApi, useAutoOppfrisk, n, kort, kr, nar, SkjelettSide, Feil, Kort, Tal
 const IKON = { lead: '🎯', ordre: '💳', drop: '🛍️', blogg: '✍️', jobb: '⚙️' };
 
 const VEKT = {
-  kritisk:  { ikon: '🔴', bak: 'var(--kri-svak)',  blekk: 'var(--kri-blekk)' },
-  advarsel: { ikon: '🟡', bak: 'var(--adv-svak)',  blekk: 'var(--adv-blekk)' },
-  info:     { ikon: '🔵', bak: 'var(--inf-svak)',  blekk: 'var(--inf-blekk)' }
+  kritisk:  { ikon: '🔴', bak: 'var(--kri-glo)',  blekk: 'var(--kri-blekk)' },
+  advarsel: { ikon: '🟡', bak: 'var(--adv-glo)',  blekk: 'var(--adv-blekk)' },
+  info:     { ikon: '🔵', bak: 'var(--inf-glo)',  blekk: 'var(--inf-blekk)' }
 };
 
 function Handlinger({ handlinger, gaTil }) {
@@ -111,7 +111,7 @@ function Oversikt({ gaTil }) {
         <Kort tittel="Salgstrakten" hint="Hvor de 150+ leadsene står akkurat nå.">
           <Rangering rader={pipeline.map((p) => ({ etikett: p.nivaa, verdi: p.antall }))} />
           <div style={{ marginTop: 15 }}>
-            <button className="kn kn-s" onClick={() => gaTil('leads')}>Åpne Leads-CRM ↗</button>
+            <button className="kn kn-b kn-s" onClick={() => gaTil('leads')}>Åpne Leads-CRM ↗</button>
           </div>
         </Kort>
 
