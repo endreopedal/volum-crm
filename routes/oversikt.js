@@ -69,8 +69,7 @@ const FORLOP = `select * from (
     from generate_series(now() - interval '13 days', now(), interval '1 day') d
 ) f order by serie, dag`;
 
-const SPORRING = `
-select
+const SPORRING = `select
   (select count(*) from crm_leads)                                            as leads_totalt,
   (select count(*) from crm_leads where status = 'LEADs')                     as leads_nye,
   (select count(*) from crm_leads where level = 'Møte booket')                as leads_moter,
