@@ -25,7 +25,6 @@ for (const [rute, fil] of Object.entries(BIBLIOTEK)) {
 
 // ── API ────────────────────────────────────────────────────────────
 app.use('/api/oppsett', require('./routes/oppsett'));
-app.use('/api/leads', require('./routes/leads'));
 app.use('/api/oversikt', require('./routes/oversikt'));
 app.use('/api/daglig', require('./routes/daglig'));
 app.use('/api/founders', require('./routes/founders'));

@@ -107,7 +107,7 @@ function Daglig() {
             ]}
             rader={nye_leads}
             tom={<Tom ikon="🎯" tittel="Ingen nye leads i perioden."
-                      tekst="Hent flere i Leads-CRM-en, eller velg en lengre periode over." />} />
+                      tekst="Velg en lengre periode over for å se eldre leads." />} />
         </Kort>
       </div>
 

@@ -104,7 +104,6 @@ function App() {
   const [tema, nesteTema] = useTema();
 
   const gaTil = useCallback((id) => {
-    if (id === 'leads') { window.open('/leads.html', '_blank'); return; }
     location.hash = '#/' + id;
     settSide(id);
     window.scrollTo({ top: 0 });
@@ -214,12 +213,6 @@ function App() {
             ))}
           </React.Fragment>
         ))}
-
-        <div className="nav-tittel">Salg</div>
-        <a className="nav-lenke" href="/leads.html" target="_blank" rel="noreferrer">
-          <span className="nav-ikon">🎯</span>Leads-CRM
-          <span className="nav-snarvei">↗</span>
-        </a>
 
         <div className="side-status" style={{ marginTop: 'auto', paddingTop: 16 }}>
           <button className="nav-lenke" onClick={nesteTema} title="Bytt tema">

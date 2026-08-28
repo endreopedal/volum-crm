@@ -35,9 +35,6 @@ const HANDLINGER = `select * from (
          coalesce(string_agg(navn, ', '), ''), 'oversikt'
     from kunder where kunde_status in ('pause','inaktiv') having count(*) > 0
   union all
-  select 'lead-stille', 'info', count(*), 'leads har ligget urørt i over 30 dager', '', 'leads'
-    from crm_leads where level = 'Første kontakt' and created_at < now() - interval '30 days' having count(*) > 0
-  union all
   select 'drop-klar', 'info', count(*), 'drops er ferdig bygget, men ikke publisert',
          coalesce(string_agg(title, ', '), ''), 'mija'
     from drops where status = 'ready' having count(*) > 0

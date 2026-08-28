@@ -14,7 +14,6 @@ og henter alt live fra Supabase.
 | **Mija** | Butikken: omsetning, ordre, refusjoner, pakker, drops, besøk, nedlastinger, personvern og eksperimenter. |
 | **Ideer** | Nye bedriftsideer. «＋ Legg til ny bedrift» oppretter en, Claude kan vurdere en enkelt idé eller foreslå tre nye bygget på det du allerede har. |
 | **Founders** | Hele Founders-podcasten som kunnskapsbase — 448 episoder delt i 11 000 søkbare biter. Spør om hva som helst og få svar med henvisning til episode og tidspunkt. |
-| **Leads-CRM** | Den gamle CRM-en, uendret, på `/leads.html`. |
 
 **Gjennom hele dashbordet:** `⌘K` åpner søk på tvers av leads, kunder, drops,
 ideer, agenter og episoder. Tastene `1`–`7` hopper mellom sidene. Temaet følger
@@ -44,7 +43,6 @@ Nøklene kan når som helst endres igjen under **Nøkler** nederst i menyen.
 | `SUPABASE_SERVICE_KEY` | alt | appen starter ikke |
 | `ANTHROPIC_API_KEY` | Founders-svar, daglig oppsummering, idévurdering | de knappene sier fra at nøkkelen mangler — resten fungerer |
 | `OPENAI_API_KEY` | semantisk søk i podcasten | Founders-søket er avslått, episodelista virker |
-| `GOOGLE_PLACES_API_KEY` | «Hent flere leads» i CRM-en | knappen sier fra |
 
 Bare Supabase-nøkkelen er påkrevd. Uten de andre fungerer resten av dashbordet
 som normalt — knappene som trenger dem sier fra.
@@ -66,7 +64,6 @@ public/        dashbordet — React via Babel i nettleseren, ingen byggesteg
   css/app.css    designsystemet: alle farger er tokens, lys og mørk
   js/kjerne.js   felles komponenter og grafer
   js/sider/      én fil per side
-  leads.html     den gamle CRM-en
 ```
 
 **To ting verdt å vite hvis du skal endre noe:**
@@ -86,7 +83,10 @@ last siden på nytt.
 ## Data
 
 Alt ligger i Supabase-prosjektet **LEADS** (`krawpaxzwygnvoueykcc`). Dashbordet
-kun leser, med to unntak: bedriftsideer (`bedrift_ideer`) og leads-endringer
-skrives tilbake.
+leser bare, med ett unntak: bedriftsideer (`bedrift_ideer`) skrives tilbake.
+
+Den gamle Leads-CRM-en er fjernet. `crm_leads` brukes fortsatt — til
+nøkkeltallene, salgstrakten og søket — men siden som redigerte den, og
+Google Places-hentingen som fylte den, ligger nå bare i git-historikken.
 
 Tabellen `bedrift_ideer` ble lagt til for Ideer-siden. Resten var der fra før.

@@ -110,9 +110,6 @@ function Oversikt({ gaTil }) {
       <div className="rutenett r2">
         <Kort tittel="Salgstrakten" hint="Hvor de 150+ leadsene står akkurat nå.">
           <Rangering rader={pipeline.map((p) => ({ etikett: p.nivaa, verdi: p.antall }))} />
-          <div style={{ marginTop: 15 }}>
-            <button className="kn kn-b kn-s" onClick={() => gaTil('leads')}>Åpne Leads-CRM ↗</button>
-          </div>
         </Kort>
 
         <Kort tittel="Kundene" hoyre={`${kunder.length} totalt`}>
