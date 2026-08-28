@@ -21,7 +21,7 @@ function Daglig() {
   if (laster) return <SkjelettSide tall={4} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
-  const { nye_leads, ordre, poster, jobber, blogg, oppgaver, drops, feil: dodeJobber } = data;
+  const { ordre, poster, jobber, blogg, oppgaver, drops, feil: dodeJobber } = data;
   const betalt = ordre.filter((o) => o.status === 'paid');
   const inntekt = betalt.reduce((s, o) => s + Number(o.belop || 0), 0);
   const forfalt = oppgaver.filter((o) => o.forfaller && new Date(o.forfaller) < new Date());
@@ -73,15 +73,15 @@ function Daglig() {
       )}
 
       <div className="rutenett r4" style={{ marginBottom: 14 }}>
-        <TallKort merk="Nye leads" verdi={n(nye_leads.length)} under="i perioden" />
         <TallKort merk="Salg" verdi={inntekt ? inntekt.toFixed(2) + ' $' : '0 $'}
           under={`${betalt.length} betalte ordre`} farge={inntekt ? 'var(--serie-3)' : undefined} />
         <TallKort merk="Poster" verdi={n(poster.length)} under="publisert eller planlagt" />
         <TallKort merk="Åpne oppgaver" verdi={n(oppgaver.length)}
           under={forfalt.length ? <Lapp type="adv">{forfalt.length} over fristen</Lapp> : 'ingen over fristen'} />
+        <TallKort merk="Blogginnlegg" verdi={n(blogg.length)} under="skrevet i perioden" />
       </div>
 
-      <div className="rutenett r2" style={{ marginBottom: 14 }}>
+      <div className="rutenett" style={{ marginBottom: 14 }}>
         <Kort tittel="Det som venter på deg" hint="Sortert etter frist — øverst haster mest.">
           <Tabell
             kolonner={[
@@ -97,18 +97,6 @@ function Daglig() {
                       tekst="Ingen oppgaver venter på deg akkurat nå." />} />
         </Kort>
 
-        <Kort tittel="Nye leads" hoyre={`${nye_leads.length} i perioden`}>
-          <Tabell
-            kolonner={[
-              { n: 'Bedrift', vis: (r) => <span className="klipp" title={r.name}>{r.name}</span> },
-              { n: 'Bransje', vis: (r) => <span className="dempet">{r.bransje || '–'}</span> },
-              { n: 'By', vis: (r) => r.by || '–' },
-              { n: 'Når', num: true, vis: (r) => <span className="dempet">{nar(r.created_at)}</span> }
-            ]}
-            rader={nye_leads}
-            tom={<Tom ikon="🎯" tittel="Ingen nye leads i perioden."
-                      tekst="Velg en lengre periode over for å se eldre leads." />} />
-        </Kort>
       </div>
 
       <div className="rutenett r3">

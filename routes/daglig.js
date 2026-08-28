@@ -8,9 +8,7 @@ const router = express.Router();
 
 async function samleDagsdata(dager) {
   const vindu = `now() - interval '${dager} days'`;
-  const [nye_leads, ordre, poster, jobber, blogg, oppgaver, drops, feil] = await Promise.all([
-    sbSql(`select name, bransje, by, level, created_at from crm_leads
-           where created_at > ${vindu} order by created_at desc limit 40`),
+  const [ordre, poster, jobber, blogg, oppgaver, drops, feil] = await Promise.all([
     sbSql(`select status, round(amount_cents/100.0,2) as belop, currency, country_code, created_at
            from orders where created_at > ${vindu} order by created_at desc limit 40`),
     sbSql(`select platform, status, left(coalesce(caption,''),80) as caption, published_at, scheduled_at
@@ -30,7 +28,7 @@ async function samleDagsdata(dager) {
            where status = 'dead' and updated_at > ${vindu}
            order by updated_at desc limit 10`)
   ]);
-  return { nye_leads, ordre, poster, jobber, blogg, oppgaver, drops, feil };
+  return { ordre, poster, jobber, blogg, oppgaver, drops, feil };
 }
 
 // Rådata for dagen — brukes til å tegne kortene.

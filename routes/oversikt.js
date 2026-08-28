@@ -42,8 +42,6 @@ const HANDLINGER = `select * from (
 
 // Sammenlikner de siste sju dagene med de sju før, så tallene får retning.
 const TRENDER = `select
-  (select count(*) from crm_leads where created_at > now() - interval '7 days') as leads_na,
-  (select count(*) from crm_leads where created_at between now() - interval '14 days' and now() - interval '7 days') as leads_for,
   (select coalesce(sum(amount_cents),0) from orders where status='paid' and created_at > now() - interval '7 days') as salg_na,
   (select coalesce(sum(amount_cents),0) from orders where status='paid' and created_at between now() - interval '14 days' and now() - interval '7 days') as salg_for,
   (select count(*) from social_posts where published_at > now() - interval '7 days') as poster_na,
@@ -53,12 +51,8 @@ const TRENDER = `select
 
 // Daglig forløp til sparklines bak nøkkeltallene.
 const FORLOP = `select * from (
-  select 'leads' as serie, d::date as dag,
-         (select count(*) from crm_leads l where l.created_at::date = d::date) as verdi
-    from generate_series(now() - interval '13 days', now(), interval '1 day') d
-  union all
-  select 'salg', d::date,
-         (select coalesce(sum(amount_cents),0) from orders o where o.status='paid' and o.created_at::date = d::date)
+  select 'salg' as serie, d::date as dag,
+         (select coalesce(sum(amount_cents),0) from orders o where o.status='paid' and o.created_at::date = d::date) as verdi
     from generate_series(now() - interval '13 days', now(), interval '1 day') d
   union all
   select 'jobber', d::date,
@@ -67,10 +61,6 @@ const FORLOP = `select * from (
 ) f order by serie, dag`;
 
 const SPORRING = `select
-  (select count(*) from crm_leads)                                            as leads_totalt,
-  (select count(*) from crm_leads where status = 'LEADs')                     as leads_nye,
-  (select count(*) from crm_leads where level = 'Møte booket')                as leads_moter,
-  (select count(*) from crm_leads where created_at > now() - interval '7 days') as leads_uke,
   (select count(*) from kunder)                                               as kunder_totalt,
   (select count(*) from kunder where kunde_status not in ('inaktiv','pause')) as kunder_aktive,
   (select count(*) from agenter where aktiv)                                  as agenter_aktive,
@@ -96,15 +86,10 @@ router.get('/', async (_req, res) => {
   try {
     const [tall] = await sbSql(SPORRING);
 
-    const [pipeline, siste, kunder, jobber, handlinger, trender, forlop] = await Promise.all([
-      // Salgstrakten: hvor mange leads står på hvert nivå
-      sbSql(`select coalesce(level,'Ukjent') as nivaa, count(*) as antall
-             from crm_leads group by 1 order by 2 desc`),
+    const [siste, kunder, jobber, handlinger, trender, forlop] = await Promise.all([
       // Siste aktivitet på tvers av systemene, samlet i én tidslinje
       sbSql(`select * from (
-        (select 'lead' as type, name as tekst, created_at as tid from crm_leads order by created_at desc limit 6)
-        union all
-        (select 'ordre', 'Salg ' || round(amount_cents/100.0,2)::text || ' ' || currency, created_at from orders where status='paid' order by created_at desc limit 5)
+        (select 'ordre' as type, 'Salg ' || round(amount_cents/100.0,2)::text || ' ' || currency as tekst, created_at as tid from orders where status='paid' order by created_at desc limit 6)
         union all
         (select 'drop', title, published_at from drops where published_at is not null order by published_at desc limit 5)
         union all
@@ -124,7 +109,7 @@ router.get('/', async (_req, res) => {
     const gnister = {};
     for (const r of forlop) (gnister[r.serie] ||= []).push(Number(r.verdi) || 0);
 
-    res.json({ tall, pipeline, siste, kunder, jobber, handlinger, trender: trender[0], gnister });
+    res.json({ tall, siste, kunder, jobber, handlinger, trender: trender[0], gnister });
   } catch (e) {
     svarFeil(res, e);
   }

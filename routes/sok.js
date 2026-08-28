@@ -10,8 +10,6 @@ const router = express.Router();
 
 // Hvor det søkes, hva som vises, og hvor treffet fører hen.
 const KILDER = [
-  { tabell: 'crm_leads', felt: ['name'], vis: 'name', ikon: '🎯', side: 'oversikt',
-    merk: (r) => 'Lead · ' + (r.by || '?'), velg: 'name,by', antall: 6 },
   { tabell: 'kunder', felt: ['navn'], vis: 'navn', ikon: '👥', side: 'oversikt',
     merk: (r) => 'Kunde · ' + (r.bransje || ''), velg: 'navn,bransje', antall: 4 },
   { tabell: 'bedrift_ideer', felt: ['navn', 'tagline'], vis: 'navn', ikon: '💡', side: 'ideer',

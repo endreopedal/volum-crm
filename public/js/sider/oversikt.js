@@ -1,9 +1,9 @@
 /* Oversikt — hva krever handling, og hvordan ligger vi an. */
 (() => {
 const { useApi, useAutoOppfrisk, n, kort, kr, nar, SkjelettSide, Feil, Kort, TallKort,
-        Trend, Lapp, Topp, Tabell, Rangering, Fordeling, Tom, serie } = window.K;
+        Trend, Lapp, Topp, Tabell, Tom } = window.K;
 
-const IKON = { lead: '🎯', ordre: '💳', drop: '🛍️', blogg: '✍️', jobb: '⚙️' };
+const IKON = { ordre: '💳', drop: '🛍️', blogg: '✍️', jobb: '⚙️' };
 
 const VEKT = {
   kritisk:  { ikon: '🔴', bak: 'var(--kri-glo)',  blekk: 'var(--kri-blekk)' },
@@ -46,7 +46,7 @@ function Oversikt({ gaTil }) {
   if (laster) return <SkjelettSide />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
-  const { tall: t, pipeline, siste, kunder, jobber, handlinger, trender, gnister } = data;
+  const { tall: t, siste, kunder, jobber, handlinger, trender, gnister } = data;
   const autopilot = String(t.autopilot).includes('true');
   const kritiske = handlinger.filter((h) => h.vekt === 'kritisk').length;
 
@@ -61,11 +61,10 @@ function Oversikt({ gaTil }) {
       </Topp>
 
       <div className="rutenett r4" style={{ marginBottom: 13 }}>
-        <TallKort merk="Leads" verdi={n(t.leads_totalt)} gnist={gnister.leads}
-          trend={<Trend na={trender.leads_na} for={trender.leads_for} />}
-          under={`${n(t.leads_uke)} nye denne uka`} />
-        <TallKort merk="Møter booket" verdi={n(t.leads_moter)} farge="var(--serie-3)"
-          under={`av ${n(t.leads_nye)} i «LEADs»`} />
+        <TallKort merk="Kunder" verdi={n(t.kunder_totalt)} farge="var(--serie-3)"
+          under={`${n(t.kunder_aktive)} aktive`} onClick={() => gaTil('sosialt')} />
+        <TallKort merk="Agenter" verdi={n(t.agenter_aktive)} under="i arbeid"
+          onClick={() => gaTil('agenter')} />
         <TallKort merk="Omsetning Mija" verdi={kr(t.omsetning_cents)} farge="var(--serie-4)"
           gnist={gnister.salg} gnistFarge="var(--serie-4)"
           trend={<Trend na={trender.salg_na} for={trender.salg_for} />}
@@ -97,21 +96,18 @@ function Oversikt({ gaTil }) {
       </div>
 
       <div className="rutenett r4" style={{ marginBottom: 13 }}>
-        <TallKort merk="Kunder" verdi={n(t.kunder_totalt)} under={`${n(t.kunder_aktive)} aktive`}
+        <TallKort merk="Sosiale poster" verdi={n(t.poster_publisert)}
+          under={Number(t.poster_venter) ? `${n(t.poster_venter)} venter på deg` : 'publisert'}
           onClick={() => gaTil('sosialt')} />
-        <TallKort merk="Agenter" verdi={n(t.agenter_aktive)} under="i arbeid"
-          onClick={() => gaTil('agenter')} />
+        <TallKort merk="Blogginnlegg" verdi={n(t.blogginnlegg)} under="skrevet"
+          onClick={() => gaTil('sosialt')} />
         <TallKort merk="Podcast-biter" verdi={kort(t.chunks)} under={`fra ${n(t.episoder)} episoder`}
           onClick={() => gaTil('founders')} />
         <TallKort merk="Bedriftsideer" verdi={n(t.ideer)} under="på lista"
           onClick={() => gaTil('ideer')} />
       </div>
 
-      <div className="rutenett r2">
-        <Kort tittel="Salgstrakten" hint="Hvor de 150+ leadsene står akkurat nå.">
-          <Rangering rader={pipeline.map((p) => ({ etikett: p.nivaa, verdi: p.antall }))} />
-        </Kort>
-
+      <div className="rutenett">
         <Kort tittel="Kundene" hoyre={`${kunder.length} totalt`}>
           <Tabell
             kolonner={[
@@ -124,7 +120,7 @@ function Oversikt({ gaTil }) {
             ]}
             rader={kunder}
             tom={<Tom ikon="👥" tittel="Ingen kunder ennå."
-                      tekst="Når en lead blir kunde dukker den opp her." />} />
+                      tekst="Kunder du legger inn i Supabase dukker opp her." />} />
         </Kort>
       </div>
     </>

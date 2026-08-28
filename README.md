@@ -7,7 +7,7 @@ og henter alt live fra Supabase.
 
 | Side | Hva den viser |
 |------|---------------|
-| **Oversikt** | Nøkkeltall på tvers av alt: leads, kunder, omsetning, agenter, poster, ideer — pluss salgstrakt, siste aktivitet og jobbkø. |
+| **Oversikt** | «Krever handling nå» øverst, så nøkkeltall på tvers av alt: kunder, agenter, omsetning, aktivitet, poster, blogg, podcast og ideer. |
 | **I dag** | Daglig oppsummering: hva som skjedde, hva som står over fristen, hva som venter. Knappen «Oppsummer med Claude» skriver sammendraget i klartekst. |
 | **AI-agenter** | Live-kart over hele maskineriet. Prikkene som renner langs linjene viser hvilken vei dataene går. Klikk på en boks for å se hva den gjør og hva den henger sammen med. Filtrer på Volum.media, Mija eller Founders for å følge én historie av gangen. |
 | **Sosialt** | Alt av sosiale medier: publiseringstakt, hva som venter på godkjenning, hva som er publisert, resultater per post, kundenes ukesleveranser og lærdommene systemet har trukket. |
@@ -85,8 +85,9 @@ last siden på nytt.
 Alt ligger i Supabase-prosjektet **LEADS** (`krawpaxzwygnvoueykcc`). Dashbordet
 leser bare, med ett unntak: bedriftsideer (`bedrift_ideer`) skrives tilbake.
 
-Den gamle Leads-CRM-en er fjernet. `crm_leads` brukes fortsatt — til
-nøkkeltallene, salgstrakten og søket — men siden som redigerte den, og
-Google Places-hentingen som fylte den, ligger nå bare i git-historikken.
+Leads er tatt helt ut av dashbordet: CRM-siden, nøkkeltallene, salgstrakten,
+«nye leads» og søketreffene. `crm_leads` står urørt i Supabase med alle 152
+radene, den vises bare ikke lenger noe sted. Agentkartet har fortsatt CRM Leads
+som node, siden det beskriver hvordan systemet henger sammen.
 
 Tabellen `bedrift_ideer` ble lagt til for Ideer-siden. Resten var der fra før.
