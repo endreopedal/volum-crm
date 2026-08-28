@@ -109,6 +109,12 @@ function Oppsett({ ferdig }) {
             ? 'Alt som må være på plass er på plass. Legg gjerne inn resten — eller gå rett inn.'
             : 'Én nøkkel til, så er du i gang. Du trenger ikke terminalen — lim inn her, så tester jeg den med en gang.'}
         </p>
+        {!klar && status.supabase?.grunn && !status.supabase?.mangler && (
+          <div className="beskjed beskjed-kri" style={{ textAlign: 'left', marginTop: 16 }}>
+            <span>⚠️</span>
+            <div><b>Nøkkelen som ligger inne nå virker ikke.</b> {status.supabase.grunn}</div>
+          </div>
+        )}
         <div className="oppsett-steg">
           {REKKEFOLGE.map((k) => (
             <span key={k} className={'steg' + (status[TEST_NAVN[k]]?.ok ? ' steg-ok' : '')} />

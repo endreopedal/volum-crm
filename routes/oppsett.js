@@ -56,6 +56,7 @@ router.post('/lagre', async (req, res) => {
     oppsett.skrivEnv(skriv);
     // Legg dem inn i prosessen også, så sidene virker med én gang.
     for (const [k, v] of Object.entries(skriv)) process.env[k] = v;
+    req.app.get('nullstillSupabaseSjekk')?.();
 
     res.json({ ok: true, status: await oppsett.status() });
   } catch (e) { svarFeil(res, e); }

@@ -35,10 +35,32 @@ app.use('/api/agenter', require('./routes/agenter'));
 app.use('/api/sosialt', require('./routes/sosialt'));
 app.use('/api/sok', require('./routes/sok'));
 
-// Hvilke nøkler som faktisk er på plass — styrer varslene i grensesnittet.
-app.get('/api/status', (_req, res) => {
+// Hvilke nøkler som virker — styrer om dashbordet eller oppsettet vises.
+//
+// Vi sjekker at Supabase-nøkkelen faktisk godtas, ikke bare at den finnes.
+// En nøkkel som er lagt inn feil skal føre til oppsettet, ikke til en råfeil.
+// Svaret mellomlagres et halvminutt så vi ikke ringer Supabase på hvert kall.
+const oppsett = require('./lib/oppsett');
+let sisteSjekk = { tid: 0, ok: false, grunn: null };
+
+async function supabaseVirker() {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+    return { ok: false, grunn: 'Ingen nøkkel lagt inn.' };
+  }
+  if (Date.now() - sisteSjekk.tid < 30000) return sisteSjekk;
+  const r = await oppsett.testSupabase(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  sisteSjekk = { tid: Date.now(), ok: r.ok, grunn: r.grunn || null };
+  return sisteSjekk;
+}
+
+// Oppsettsiden kaller denne etter lagring, så en ny nøkkel slår inn med én gang.
+app.set('nullstillSupabaseSjekk', () => { sisteSjekk = { tid: 0, ok: false, grunn: null }; });
+
+app.get('/api/status', async (_req, res) => {
+  const sb = await supabaseVirker();
   res.json({
-    supabase: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY),
+    supabase: sb.ok,
+    supabase_grunn: sb.grunn,
     claude: Boolean(process.env.ANTHROPIC_API_KEY),
     embeddings: Boolean(process.env.OPENAI_API_KEY),
     google_places: Boolean(process.env.GOOGLE_PLACES_API_KEY),
