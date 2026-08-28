@@ -43,8 +43,18 @@ function Daglig() {
       {dodeJobber.length > 0 && (
         <div className="beskjed beskjed-kri">
           <span>🛑</span>
-          <div><b>{dodeJobber.length} {dodeJobber.length === 1 ? 'jobb' : 'jobber'} har gitt opp.</b>{' '}
-            {dodeJobber.map((f) => f.type).join(', ')} — sist {nar(dodeJobber[0].updated_at)}.</div>
+          <div>
+            <b>{dodeJobber.length} {dodeJobber.length === 1 ? 'jobb' : 'jobber'} har gitt opp.</b>{' '}
+            {/* Samme jobb dør ofte flere ganger — vis den én gang med antall,
+                ellers står det bare det samme navnet om og om igjen. */}
+            {Object.entries(
+              dodeJobber.reduce((s, f) => ({ ...s, [f.type]: (s[f.type] || 0) + 1 }), {})
+            )
+              .sort((a, b) => b[1] - a[1])
+              .map(([type, antall]) => antall > 1 ? `${type} (${antall}×)` : type)
+              .join(', ')}
+            {' '}— sist {nar(dodeJobber[0].updated_at)}.
+          </div>
         </div>
       )}
       {forfalt.length > 0 && (
