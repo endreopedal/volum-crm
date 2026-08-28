@@ -14,7 +14,11 @@ function Sosialt() {
   const { tall: t, perPlattform, perStatus, kommende, publisert, perDag, ytelse, kundeinnhold, volumposter, playbook } = data;
 
   const visninger = Number(t.visninger || 0);
-  const ingenMaling = Number(t.malinger || 0) === 0;
+  // To ulike tilstander som ser like ut i tallene, men betyr helt forskjellige ting:
+  // enten har metrics.sync aldri kjørt, eller så kjører den og får null tilbake.
+  const antallMalinger = Number(t.malinger || 0);
+  const ingenMaling = antallMalinger === 0;
+  const maalerNull = antallMalinger > 0 && visninger === 0;
   const auto = String(t.auto_publiser).includes('true');
   const pauseTil = String(t.pause_til || '').replace(/"/g, '');
   const iPause = pauseTil && new Date(pauseTil) > new Date();
@@ -46,7 +50,9 @@ function Sosialt() {
           under={Number(t.feilet) ? <Lapp type="kri">{n(t.feilet)} feilet</Lapp> : 'ingen feilet'}
           farge={Number(t.venter) ? 'var(--serie-4)' : undefined} />
         <TallKort merk="Visninger" verdi={n(visninger)}
-          under={ingenMaling ? <Lapp type="adv">ingen målinger ennå</Lapp> : `${engasjement} engasjement`} />
+          under={ingenMaling ? <Lapp type="adv">ingen målinger ennå</Lapp>
+            : maalerNull ? <Lapp type="adv">plattformene svarer null</Lapp>
+            : `${engasjement} engasjement`} />
         <TallKort merk="Salg fra sosialt" verdi={n(t.tilskrevne_ordre)}
           under={Number(t.tilskrevet_cents) ? kr(t.tilskrevet_cents) : 'ikke målt ennå'}
           farge={Number(t.tilskrevne_ordre) ? 'var(--serie-3)' : undefined} />
@@ -58,6 +64,18 @@ function Sosialt() {
           <div><b>Ingen resultattall.</b> <code>social_metrics</code> er tom — <code>metrics.sync</code>-jobben
             har ikke hentet visninger og likes fra plattformene ennå. Publiseringen fungerer;
             det er bare målingen som mangler.</div>
+        </div>
+      )}
+      {maalerNull && (
+        <div className="beskjed beskjed-adv">
+          <span>📉</span>
+          <div>
+            <b>Målingene kjører, men plattformene svarer null.</b>{' '}
+            <code>metrics.sync</code> har laget {n(antallMalinger)} rader i <code>social_metrics</code>,
+            men visninger, likes og klikk står på null i alle sammen. Da er det som regel
+            tilgangen som mangler — API-tokenet mot Instagram og TikTok gir ikke innsyn i
+            statistikk. Tallene under er ekte, de er bare tomme.
+          </div>
         </div>
       )}
 
@@ -113,7 +131,7 @@ function Sosialt() {
 
       <div className="rutenett r2" style={{ marginBottom: 14 }}>
         <Kort tittel="Beste poster" hint="Sortert på visninger. Krever at metrics.sync har kjørt.">
-          {ytelse.length ? (
+          {ytelse.length && visninger > 0 ? (
             <Tabell
               kolonner={[
                 { n: 'Kanal', vis: (r) => <span>{KANAL_IKON[r.platform] || '•'}</span> },
@@ -124,7 +142,13 @@ function Sosialt() {
                 { n: 'Salg', num: true, vis: (r) => n(r.attributed_orders) }
               ]}
               rader={ytelse} />
-          ) : <Tom ikon="📊" tekst="Ingen målinger hentet inn ennå." />}
+          ) : (
+            <Tom ikon="📊"
+                 tittel={maalerNull ? 'Målingene er tomme.' : 'Ingen målinger hentet inn ennå.'}
+                 tekst={maalerNull
+                   ? 'Radene finnes, men plattformene rapporterer null visninger. Sjekk tilgangen til statistikk-API-et.'
+                   : 'Når metrics.sync har hentet tall fra Instagram og TikTok, rangeres postene her.'} />
+          )}
         </Kort>
 
         <Kort tittel="Kundenes uke" hint="Innhold Volum lager og sender til Metricool for hver kunde.">
