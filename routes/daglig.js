@@ -24,8 +24,11 @@ async function samleDagsdata(dager) {
            where status <> 'ferdig' order by forfaller asc limit 25`),
     sbSql(`select title, status, edition, published_at from drops
            where coalesce(published_at, created_at) > ${vindu} order by created_at desc limit 10`),
+    // Manglet tidsfilteret alle de andre har, så «I dag» meldte om jobber
+    // som ga opp for flere dager siden. Oversikt-panelet viser alle uansett.
     sbSql(`select type, last_error, attempts, updated_at from jobs
-           where status = 'dead' order by updated_at desc limit 10`)
+           where status = 'dead' and updated_at > ${vindu}
+           order by updated_at desc limit 10`)
   ]);
   return { nye_leads, ordre, poster, jobber, blogg, oppgaver, drops, feil };
 }
