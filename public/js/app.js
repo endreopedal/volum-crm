@@ -100,6 +100,7 @@ function App() {
   const [status, settStatus] = useState(null);
   const [sokApen, settSokApen] = useState(false);
   const [varsler, settVarsler] = useState(0);
+  const [serverFeil, settServerFeil] = useState(null);
   const [tema, nesteTema] = useTema();
 
   const gaTil = useCallback((id) => {
@@ -138,8 +139,13 @@ function App() {
   useEffect(() => {
     if (!status?.supabase) return;
     api('/api/oversikt')
-      .then((d) => settVarsler((d.handlinger || []).filter((h) => h.vekt === 'kritisk').length))
-      .catch(() => {});
+      .then((d) => {
+        settVarsler((d.handlinger || []).filter((h) => h.vekt === 'kritisk').length);
+        settServerFeil(null);
+      })
+      // Feilen her ble tidligere svelget, så en ødelagt server viste seg bare
+      // som en 500 i konsollen. Nå sier appen fra.
+      .catch((e) => settServerFeil(e.message));
   }, [status?.supabase, side]);
 
   // Tastatur: Cmd/Ctrl+K åpner søk, tallene hopper mellom sidene.
@@ -231,6 +237,18 @@ function App() {
       </aside>
 
       <main className="hoved">
+        {serverFeil && (
+          <div className="beskjed beskjed-kri">
+            <span>⚠️</span>
+            <div>
+              <b>Serveren svarer ikke som den skal.</b> {serverFeil}
+              <div style={{ marginTop: 8, opacity: .85 }}>
+                Har du nettopp hentet ny kode? Node laster rutefilene ved oppstart —
+                stopp serveren med <kbd>Ctrl</kbd>+<kbd>C</kbd> og kjør <code>npm start</code> på nytt.
+              </div>
+            </div>
+          </div>
+        )}
         {Side ? <Side gaTil={gaTil} status={status} /> : <div className="laster">Fant ikke siden.</div>}
       </main>
 
