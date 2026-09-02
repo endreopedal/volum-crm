@@ -1,49 +1,93 @@
-# Volum Leads-CRM
+# Volum Kontroll
 
-Enkel lokal CRM. Kjører på `localhost`, lagrer alt i Supabase (`crm_leads`), og har én knapp
-som henter nye leads fra Google Places.
+Kontrollpanelet for alt du driver med. Kjører lokalt på **http://localhost:3000**
+og henter alt live fra Supabase.
 
-## Oppsett (én gang)
+## Sidene
 
-1. **Node 18+** må være installert (`node -v`).
-2. Legg filene i en mappe, åpne terminal i mappa.
-3. Kopier `.env.example` → `.env` og fyll inn:
-   ```
-   cp .env.example .env
-   ```
-   - `SUPABASE_SERVICE_KEY` — Supabase → Project Settings → API → **service_role** (secret).
-   - `GOOGLE_PLACES_API_KEY` — samme nøkkel du brukte i det gamle scriptet.
-   - `SUPABASE_URL` er allerede fylt inn (LEADS-prosjektet).
-4. Installer:
-   ```
-   npm install
-   ```
+| Side | Hva den viser |
+|------|---------------|
+| **Oversikt** | «Krever handling nå» øverst, så nøkkeltall på tvers av alt: kunder, agenter, omsetning, aktivitet, poster, blogg, podcast og ideer. |
+| **I dag** | Daglig oppsummering: hva som skjedde, hva som står over fristen, hva som venter. Knappen «Oppsummer med Claude» skriver sammendraget i klartekst. |
+| **AI-agenter** | Live-kart over hele maskineriet. Prikkene som renner langs linjene viser hvilken vei dataene går. Klikk på en boks for å se hva den gjør og hva den henger sammen med. Filtrer på Volum.media, Mija eller Founders for å følge én historie av gangen. |
+| **Sosialt** | Alt av sosiale medier: publiseringstakt, hva som venter på godkjenning, hva som er publisert, resultater per post, kundenes ukesleveranser og lærdommene systemet har trukket. |
+| **Mija** | Butikken: omsetning, ordre, refusjoner, pakker, drops, besøk, nedlastinger, personvern og eksperimenter. |
+| **Ideer** | Nye bedriftsideer. «＋ Legg til ny bedrift» oppretter en, Claude kan vurdere en enkelt idé eller foreslå tre nye bygget på det du allerede har. |
+| **Founders** | Hele Founders-podcasten som kunnskapsbase — 448 episoder delt i 11 000 søkbare biter. Spør om hva som helst og få svar med henvisning til episode og tidspunkt. |
 
-## Flytt de gamle leadsene inn (én gang)
+**Gjennom hele dashbordet:** `⌘K` åpner søk på tvers av leads, kunder, drops,
+ideer, agenter og episoder. Tastene `1`–`7` hopper mellom sidene. Temaet følger
+systemet ditt, men kan låses til lyst eller mørkt nederst i menyen. Sidene
+frisker seg opp av seg selv når fanen er synlig.
 
-```
-node importer.js
-```
-Henter de eksisterende leadsene fra arket og legger dem i Supabase. Kjør gjerne flere ganger —
-den hopper over det som allerede ligger inne.
-
-## Start appen
+## Oppsett
 
 ```
+npm install
 npm start
 ```
-Åpne **http://localhost:3000**
 
-## Bruk
+Åpne **http://localhost:3000**. Mangler nøklene, møter du oppsettsiden — lim dem
+inn der, så testes hver enkelt med en gang og lagres til `.env`. Du trenger ikke
+terminalen, og du trenger ikke starte på nytt etterpå.
 
-- **＋ Hent flere leads** — søker én bransje+by i Google Places, legger nye leads i «Ny».
-  Neste trykk går videre til neste kombinasjon (rotasjonen huskes i Supabase).
-- Flytt en lead med **statusvelgeren** på kortet (Ny → Kontaktet → Venter → Møte booket).
-  Alt lagres automatisk i Supabase — appen husker alt neste gang du åpner den.
-- Bransjer og byer redigerer du øverst i `server.js` (`BRANSJER` / `BYER`).
+Går noe galt med en nøkkel, sier siden hva som er galt: avkortet kopi, feil
+prosjekt, `anon` i stedet for `service_role`, plassholder som aldri ble byttet ut.
 
-## Viktig
+Nøklene kan når som helst endres igjen under **Nøkler** nederst i menyen.
 
-- **Google billing må være aktivt** på Google Cloud-prosjektet, ellers svarer Places
-  `OVER_QUERY_LIMIT`. Appen sier fra i en rød melding hvis det skjer.
-- `.env` skal **aldri** pushes til GitHub (ligger i `.gitignore`).
+### Nøkler
+
+| Nøkkel | Trengs til | Uten den |
+|--------|-----------|----------|
+| `SUPABASE_SERVICE_KEY` | alt | appen starter ikke |
+| `ANTHROPIC_API_KEY` | Founders-svar, daglig oppsummering, idévurdering | de knappene sier fra at nøkkelen mangler — resten fungerer |
+| `OPENAI_API_KEY` | semantisk søk i podcasten | Founders-søket er avslått, episodelista virker |
+
+Bare Supabase-nøkkelen er påkrevd. Uten de andre fungerer resten av dashbordet
+som normalt — knappene som trenger dem sier fra.
+
+**Merk om embeddings:** `OPENAI_API_KEY` brukes *kun* til å lage søkevektorer, og må
+være OpenAI. De 11 000 bitene i `podcast_chunks` er allerede lagret med
+`text-embedding-3-small` (1536 dimensjoner) — bytter du modell, matcher ikke
+vektorene og søket blir ubrukelig. Selve svarene skrives av Claude.
+
+## Slik henger det sammen
+
+```
+routes/        ett API-endepunkt per side  (/api/oversikt, /api/mija, …)
+lib/sb.js      Supabase (REST + SQL via ceo_readonly_query)
+lib/llm.js     Claude (claude-opus-5) + OpenAI-embeddings
+lib/oppsett.js leser, tester og skriver .env — det oppsettsiden bruker
+lib/feil.js    ett felles feilsvar, så «nøkler mangler» alltid ser likt ut
+public/        dashbordet — React via Babel i nettleseren, ingen byggesteg
+  css/app.css    designsystemet: alle farger er tokens, lys og mørk
+  js/kjerne.js   felles komponenter og grafer
+  js/sider/      én fil per side
+```
+
+**To ting verdt å vite hvis du skal endre noe:**
+
+`ceo_readonly_query` i Supabase avviser spørringer som inneholder ordene
+`insert`, `update`, `delete`, `drop`, `create`, `alter`, `truncate`, `grant`
+eller `revoke` etterfulgt av mellomrom — også inne i tekststrenger. Derfor heter
+det «Mija-utgivelse», ikke «Drop», i søkeresultatene.
+
+Grafene setter `viewBox` i faktiske piksler ved hjelp av en `ResizeObserver`.
+Uten det skalerer nettleseren akseteksten opp eller ned sammen med grafen.
+
+React og Babel serveres fra `node_modules` via `/bibliotek/*`, så dashbordet
+tegner seg uten internett. Ingen byggesteg — rediger en fil under `public/` og
+last siden på nytt.
+
+## Data
+
+Alt ligger i Supabase-prosjektet **LEADS** (`krawpaxzwygnvoueykcc`). Dashbordet
+leser bare, med ett unntak: bedriftsideer (`bedrift_ideer`) skrives tilbake.
+
+Leads er tatt helt ut av dashbordet: CRM-siden, nøkkeltallene, salgstrakten,
+«nye leads» og søketreffene. `crm_leads` står urørt i Supabase med alle 152
+radene, den vises bare ikke lenger noe sted. Agentkartet har fortsatt CRM Leads
+som node, siden det beskriver hvordan systemet henger sammen.
+
+Tabellen `bedrift_ideer` ble lagt til for Ideer-siden. Resten var der fra før.

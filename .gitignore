@@ -1,4 +1,4 @@
 node_modules/
 .env
 hent-teller.json
-hent-teller.json
+.DS_Store
