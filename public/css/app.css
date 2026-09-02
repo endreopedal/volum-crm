@@ -515,3 +515,87 @@ kbd{font-family:var(--sans);font-size:11px;font-weight:800;background:var(--glas
   box-shadow:inset 0 0 0 1px rgba(208,59,59,.2);}
 
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+
+/* «Denne uka»-stripe: kompakt rad med ukas nøkkeltall øverst på Oversikt. */
+.ukestripe{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;
+  background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter:blur(var(--blur)) saturate(180%);
+  border:1px solid var(--glass-kant);border-radius:16px;
+  box-shadow:var(--glass-hi);overflow:hidden;margin-bottom:13px;}
+.ukestripe-merke{display:flex;flex-direction:column;justify-content:center;
+  padding:14px 18px;min-width:132px;gap:2px;
+  background:linear-gradient(135deg,var(--merke-glo),transparent);}
+.ukestripe-merke b{font-size:15px;letter-spacing:-.01em;}
+.ukestripe-merke span{font-size:11px;color:var(--blekk-3);}
+.ukestripe-tall{flex:1 1 110px;min-width:110px;padding:14px 16px;
+  border-left:1px solid var(--glass-kant);display:flex;flex-direction:column;gap:3px;}
+.ukestripe-tall .merk{font-size:10px;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--blekk-3);}
+.ukestripe-tall .verdi{font-size:20px;font-weight:650;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;line-height:1.1;}
+@media (max-width:900px){
+  .ukestripe-merke{flex:1 1 100%;}
+  .ukestripe-tall{border-top:1px solid var(--glass-kant);}
+}
+
+/* ── Live: nedstrippet kart. Store stasjoner på tre linjer. ── */
+.lenke{background:none;border:0;padding:0;font:inherit;color:var(--bla);
+  font-weight:650;cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.lenke:hover{color:var(--merke);}
+
+.live-linje{background:var(--glass);backdrop-filter:blur(var(--blur)) saturate(180%);
+  -webkit-backdrop-filter:blur(var(--blur)) saturate(180%);
+  border:1px solid var(--glass-kant);border-radius:var(--r);
+  box-shadow:var(--glass-hi);padding:16px 18px 18px;margin-bottom:14px;
+  border-left:3px solid var(--linje);}
+.live-topp{margin-bottom:14px;}
+.live-merke{display:flex;align-items:flex-start;gap:11px;}
+.live-merke-ikon{font-size:22px;line-height:1.1;}
+.live-merke b{font-size:15.5px;letter-spacing:-.01em;}
+.live-hva{font-size:12.5px;color:var(--blekk-3);margin-top:2px;max-width:70ch;}
+
+.live-spor{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:4px;}
+.live-stasjon{flex:1 1 168px;min-width:168px;padding:13px 14px;border-radius:14px;
+  background:var(--glass-2);border:1px solid var(--kant);
+  display:flex;flex-direction:column;gap:4px;position:relative;
+  border-top:3px solid var(--linje);transition:transform .25s,box-shadow .25s;}
+.live-ikon{font-size:21px;line-height:1.1;}
+.live-navn{font-size:13.5px;font-weight:700;letter-spacing:-.01em;}
+.live-tall{font-size:12px;color:var(--blekk-3);font-variant-numeric:tabular-nums;}
+.live-tall b{font-size:17px;color:var(--blekk);font-weight:700;margin-right:3px;}
+.live-hvorfor{font-size:11.5px;color:var(--blekk-3);line-height:1.5;margin-top:2px;}
+.live-varsel{font-size:11.5px;color:var(--kri-blekk);font-weight:650;margin-top:auto;padding-top:6px;}
+.live-sist{font-size:11px;color:var(--blekk-3);margin-top:auto;padding-top:6px;opacity:.8;}
+
+/* Pila mellom to stasjoner. Prikken viser retning — ikke fart, ikke mengde. */
+.live-pil{flex:0 0 34px;align-self:center;height:2px;background:var(--kant);
+  position:relative;border-radius:1px;}
+.live-pil::after{content:'';position:absolute;right:-1px;top:-3px;
+  border-left:6px solid var(--kant);border-top:4px solid transparent;
+  border-bottom:4px solid transparent;}
+.live-prikk{position:absolute;top:-2.5px;left:0;width:6px;height:6px;border-radius:50%;
+  background:var(--linje);animation:renn 2.4s linear infinite;}
+@keyframes renn{from{left:0;opacity:0;}15%{opacity:1;}85%{opacity:1;}to{left:100%;opacity:0;}}
+
+/* Blink = en ekte jobb kjørte akkurat nå. */
+.live-stasjon.blink{animation:stasjonblink 1.3s ease-out 2;}
+@keyframes stasjonblink{
+  0%{box-shadow:0 0 0 0 var(--linje);}
+  40%{box-shadow:0 0 0 5px color-mix(in srgb,var(--linje) 22%,transparent);}
+  100%{box-shadow:0 0 0 0 transparent;}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .live-prikk{animation:none;left:calc(50% - 3px);}
+  .live-stasjon.blink{animation:none;box-shadow:0 0 0 3px var(--linje);}
+}
+@media (max-width:900px){
+  .live-spor{flex-direction:column;}
+  .live-stasjon{min-width:0;}
+  .live-pil{width:2px;height:26px;flex:0 0 26px;align-self:flex-start;margin-left:22px;}
+  .live-pil::after{right:-3px;bottom:-1px;top:auto;
+    border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:6px solid var(--kant);border-bottom:0;}
+  .live-prikk{animation:renn-ned 2.4s linear infinite;left:-2px;top:0;}
+  @keyframes renn-ned{from{top:0;opacity:0;}15%{opacity:1;}85%{opacity:1;}to{top:100%;opacity:0;}}
+}

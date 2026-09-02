@@ -5,11 +5,12 @@ const { useState, useEffect, useRef, useCallback, api } = window.K;
 const SIDER = [
   { id: 'oversikt', navn: 'Oversikt',   ikon: '📊', gruppe: 'Daglig',     tast: '1' },
   { id: 'daglig',   navn: 'I dag',      ikon: '📅', gruppe: 'Daglig',     tast: '2' },
-  { id: 'agenter',  navn: 'AI-agenter', ikon: '🧠', gruppe: 'Systemet',   tast: '3' },
-  { id: 'sosialt',  navn: 'Sosialt',    ikon: '📱', gruppe: 'Systemet',   tast: '4' },
-  { id: 'mija',     navn: 'Mija',       ikon: '🛍️', gruppe: 'Bedriftene', tast: '5' },
-  { id: 'ideer',    navn: 'Ideer',      ikon: '💡', gruppe: 'Bedriftene', tast: '6' },
-  { id: 'founders', navn: 'Founders',   ikon: '🎙️', gruppe: 'Kunnskap',   tast: '7' }
+  { id: 'live',     navn: 'Live',       ikon: '🛰️', gruppe: 'Systemet',   tast: '3' },
+  { id: 'agenter',  navn: 'AI-agenter', ikon: '🧠', gruppe: 'Systemet',   tast: '4' },
+  { id: 'sosialt',  navn: 'Sosialt',    ikon: '📱', gruppe: 'Systemet',   tast: '5' },
+  { id: 'mija',     navn: 'Mija',       ikon: '🛍️', gruppe: 'Bedriftene', tast: '6' },
+  { id: 'ideer',    navn: 'Ideer',      ikon: '💡', gruppe: 'Bedriftene', tast: '7' },
+  { id: 'founders', navn: 'Founders',   ikon: '🎙️', gruppe: 'Kunnskap',   tast: '8' }
 ];
 const GRUPPER = ['Daglig', 'Systemet', 'Bedriftene', 'Kunnskap'];
 

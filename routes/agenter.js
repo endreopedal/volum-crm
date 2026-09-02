@@ -13,7 +13,6 @@ const router = express.Router();
 const NODER = [
   // ── Volum.media: fra ukjent bedrift til betalende kunde ──
   { id: 'places',    navn: 'Google Places',     ikon: '🗺️', gruppe: 'kilde',  kolonne: 0, rad: 0, tekst: 'Søker bransje × by' },
-  { id: 'leads',     navn: 'CRM Leads',         ikon: '🎯', gruppe: 'data',   kolonne: 1, rad: 0, tabell: 'crm_leads' },
   { id: 'ringepanel',navn: 'Ringepanel',        ikon: '📞', gruppe: 'agent',  kolonne: 2, rad: 0, agent: 'ringepanel' },
   { id: 'kunder',    navn: 'Kunder',            ikon: '👥', gruppe: 'data',   kolonne: 3, rad: 0, tabell: 'kunder' },
 
@@ -60,8 +59,7 @@ const NODER = [
 ];
 
 const KANTER = [
-  ['places', 'leads', 'nye bedrifter'],
-  ['leads', 'ringepanel', 'ringeliste'],
+  ['places', 'ringepanel', 'nye bedrifter'],
   ['ringepanel', 'kunder', 'signert'],
   ['kunder', 'sosiale', ''], ['kunder', 'googlebing', ''], ['kunder', 'blogg', ''],
   ['kunder', 'forum', ''], ['kunder', 'synlighet', ''],
@@ -94,7 +92,7 @@ const KANTER = [
 
   ['jobs', 'trend', ''], ['jobs', 'dropbuild', ''], ['jobs', 'somepub', ''], ['jobs', 'fulfill', ''],
   ['supabase', 'jobs', 'køer opp'],
-  ['leads', 'supabase', ''], ['kunder', 'supabase', ''], ['chunks', 'supabase', ''],
+  ['kunder', 'supabase', ''], ['chunks', 'supabase', ''],
   ['ordre', 'supabase', ''], ['someplan', 'supabase', '']
 ];
 

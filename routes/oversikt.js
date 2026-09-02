@@ -49,6 +49,28 @@ const TRENDER = `select
   (select count(*) from jobs where updated_at > now() - interval '7 days') as jobber_na,
   (select count(*) from jobs where updated_at between now() - interval '14 days' and now() - interval '7 days') as jobber_for`;
 
+// «Denne uka»: kalenderuka (mandag→nå) mot samme spenn forrige uke.
+// Ingen CTE — ceo_readonly_query krever at spørringen starter med «select».
+const DENNE_UKA = `select
+  to_char(now(), 'IW')            as ukenr,
+  date_trunc('week', now())::date as uke_start,
+  (select coalesce(sum(amount_cents),0) from orders where status='paid' and created_at >= date_trunc('week', now())) as salg_na,
+  (select coalesce(sum(amount_cents),0) from orders where status='paid' and created_at >= date_trunc('week', now()) - interval '7 days' and created_at < now() - interval '7 days') as salg_for,
+  (select count(*) from orders where status='paid' and created_at >= date_trunc('week', now())) as ordre_na,
+  (select count(*) from orders where status='paid' and created_at >= date_trunc('week', now()) - interval '7 days' and created_at < now() - interval '7 days') as ordre_for,
+  (select count(*) from social_posts where status='published' and published_at >= date_trunc('week', now())) as poster_na,
+  (select count(*) from social_posts where status='published' and published_at >= date_trunc('week', now()) - interval '7 days' and published_at < now() - interval '7 days') as poster_for,
+  (select count(*) from jobs where status='done' and updated_at >= date_trunc('week', now())) as jobber_na,
+  (select count(*) from jobs where status='done' and updated_at >= date_trunc('week', now()) - interval '7 days' and updated_at < now() - interval '7 days') as jobber_for,
+  (select count(*) from jobs where status='dead' and updated_at >= date_trunc('week', now())) as feil_na,
+  (select count(*) from jobs where status='dead' and updated_at >= date_trunc('week', now()) - interval '7 days' and updated_at < now() - interval '7 days') as feil_for,
+  (select count(*) from drops where status='published' and published_at >= date_trunc('week', now())) as drops_na,
+  (select count(*) from drops where status='published' and published_at >= date_trunc('week', now()) - interval '7 days' and published_at < now() - interval '7 days') as drops_for,
+  (select count(*) from bedrift_ideer where opprettet >= date_trunc('week', now())) as ideer_na,
+  (select count(*) from bedrift_ideer where opprettet >= date_trunc('week', now()) - interval '7 days' and opprettet < now() - interval '7 days') as ideer_for,
+  (select count(*) from blogg_innlegg where created_at >= date_trunc('week', now())) as blogg_na,
+  (select count(*) from blogg_innlegg where created_at >= date_trunc('week', now()) - interval '7 days' and created_at < now() - interval '7 days') as blogg_for`;
+
 // Daglig forløp til sparklines bak nøkkeltallene.
 const FORLOP = `select * from (
   select 'salg' as serie, d::date as dag,
@@ -86,7 +108,7 @@ router.get('/', async (_req, res) => {
   try {
     const [tall] = await sbSql(SPORRING);
 
-    const [siste, kunder, jobber, handlinger, trender, forlop] = await Promise.all([
+    const [siste, kunder, jobber, handlinger, trender, forlop, uka] = await Promise.all([
       // Siste aktivitet på tvers av systemene, samlet i én tidslinje
       sbSql(`select * from (
         (select 'ordre' as type, 'Salg ' || round(amount_cents/100.0,2)::text || ' ' || currency as tekst, created_at as tid from orders where status='paid' order by created_at desc limit 6)
@@ -102,14 +124,15 @@ router.get('/', async (_req, res) => {
       sbSql(`select status, count(*) as antall from jobs group by 1 order by 2 desc`),
       sbSql(HANDLINGER),
       sbSql(TRENDER),
-      sbSql(FORLOP)
+      sbSql(FORLOP),
+      sbSql(DENNE_UKA)
     ]);
 
     // Forløpet grupperes per serie, så frontend bare trenger en liste med tall.
     const gnister = {};
     for (const r of forlop) (gnister[r.serie] ||= []).push(Number(r.verdi) || 0);
 
-    res.json({ tall, siste, kunder, jobber, handlinger, trender: trender[0], gnister });
+    res.json({ tall, siste, kunder, jobber, handlinger, trender: trender[0], gnister, uka: uka[0] || null });
   } catch (e) {
     svarFeil(res, e);
   }

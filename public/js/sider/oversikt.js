@@ -39,6 +39,49 @@ function Handlinger({ handlinger, gaTil }) {
   );
 }
 
+/* Ukas nøkkeltall, mandag → nå, mot samme spenn forrige uke.
+   Alt kommer fra DENNE_UKA-spørringa; ingenting regnes ut i nettleseren. */
+function Ukestripe({ uka }) {
+  if (!uka) {
+    return (
+      <div className="ukestripe">
+        <div className="ukestripe-merke"><b>Denne uka</b><span>ingen data</span></div>
+        <div className="ukestripe-tall">
+          <span className="merk">Kilde</span>
+          <span className="verdi" style={{ fontSize: 13, fontWeight: 500 }}>
+            Ukespørringa svarte ikke.
+          </span>
+        </div>
+      </div>
+    );
+  }
+  const felt = [
+    { merk: 'Salg',      verdi: kr(uka.salg_na),    na: uka.salg_na,   for: uka.salg_for },
+    { merk: 'Ordre',     verdi: n(uka.ordre_na),    na: uka.ordre_na,  for: uka.ordre_for },
+    { merk: 'Poster ut', verdi: n(uka.poster_na),   na: uka.poster_na, for: uka.poster_for },
+    { merk: 'Jobber ok', verdi: n(uka.jobber_na),   na: uka.jobber_na, for: uka.jobber_for },
+    { merk: 'Jobber døde', verdi: n(uka.feil_na),   na: uka.feil_na,   for: uka.feil_for, snu: true },
+    { merk: 'Drops',     verdi: n(uka.drops_na),    na: uka.drops_na,  for: uka.drops_for },
+    { merk: 'Blogg',     verdi: n(uka.blogg_na),    na: uka.blogg_na,  for: uka.blogg_for },
+    { merk: 'Nye ideer', verdi: n(uka.ideer_na),    na: uka.ideer_na,  for: uka.ideer_for }
+  ];
+  return (
+    <div className="ukestripe">
+      <div className="ukestripe-merke">
+        <b>Denne uka</b>
+        <span>uke {uka.ukenr} · fra {uka.uke_start}</span>
+      </div>
+      {felt.map((f) => (
+        <div className="ukestripe-tall" key={f.merk}>
+          <span className="merk">{f.merk}</span>
+          <span className="verdi">{f.verdi}</span>
+          <Trend na={f.na} for={f.for} snuFarge={f.snu} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Oversikt({ gaTil }) {
   const { data, feil, laster, hentPaNytt } = useApi('/api/oversikt');
   useAutoOppfrisk(hentPaNytt, 90);
@@ -46,7 +89,7 @@ function Oversikt({ gaTil }) {
   if (laster) return <SkjelettSide />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
-  const { tall: t, siste, kunder, jobber, handlinger, trender, gnister } = data;
+  const { tall: t, siste, kunder, jobber, handlinger, trender, gnister, uka } = data;
   const autopilot = String(t.autopilot).includes('true');
   const kritiske = handlinger.filter((h) => h.vekt === 'kritisk').length;
 
@@ -59,6 +102,8 @@ function Oversikt({ gaTil }) {
         </span>
         <button className="kn" onClick={() => hentPaNytt(true)}>↻ Oppdater</button>
       </Topp>
+
+      <Ukestripe uka={uka} />
 
       <div className="rutenett r4" style={{ marginBottom: 13 }}>
         <TallKort merk="Kunder" verdi={n(t.kunder_totalt)} farge="var(--serie-3)"

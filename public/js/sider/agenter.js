@@ -18,7 +18,7 @@ const GRUPPE = {
 
 // Hvilke noder som hører til hvilken historie — brukes av filterknappene.
 const SPOR = {
-  volum:    ['places','leads','ringepanel','kunder','sosiale','googlebing','blogg','forum','synlighet','metricool','gbp','bloggsite','forumut','rapport','supabase'],
+  volum:    ['places','ringepanel','kunder','sosiale','googlebing','blogg','forum','synlighet','metricool','gbp','bloggsite','forumut','rapport','supabase'],
   mija:     ['trend','tema','dropplan','dropbuild','droppub','mijaside','someplan','somepub','igtiktok','ordre','fulfill','metrics','eksper','jobs','supabase'],
   founders: ['rss','episoder','chunks','llm','dash','supabase']
 };
@@ -222,8 +222,8 @@ function Agenter() {
       <div className="rutenett r2" style={{ marginBottom: 14 }}>
         <Kort tittel="Slik henger det sammen" hint="Den korte versjonen, i ord.">
           <div className="prosa" style={{ fontSize: 13.5 }}>
-            <p><b>Volum.media</b> starter med at Google Places gir nye bedrifter. De havner i CRM-en,
-              ringepanelet gjør dem om til kunder, og da tar fem agenter over: én lager sosiale innlegg,
+            <p><b>Volum.media</b> starter med at Google Places gir nye bedrifter.
+              Ringepanelet gjør dem om til kunder, og da tar fem agenter over: én lager sosiale innlegg,
               én skriver Google- og Bing-poster, én blogger, én poster i forum, og én måler hvor synlig
               kunden er i ChatGPT, Gemini og Claude. Resultatet går ut via Metricool og Google Business,
               og oppsummeres i en månedsrapport.</p>
