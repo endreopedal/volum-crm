@@ -108,7 +108,10 @@ const SKJEMA_FORSLAG = {
   required: ['ideer'],
   properties: {
     ideer: {
-      type: 'array', minItems: 3, maxItems: 3,
+      // Ingen minItems/maxItems: Anthropic sitt structured-output-skjema godtar bare
+      // minItems 0 eller 1, og et hvilket som helst annet tall gir 400. Antallet
+      // står i prompten i stedet, og vi kutter/validerer i koden under.
+      type: 'array',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -150,6 +153,7 @@ router.post('/foresla', async (req, res) => {
 har allerede en CRM med 150+ norske leads innen bilpleie/håndverk, en automatisert butikk for
 digitale produkter, og en vektordatabase med hele Founders-podcasten.
 
+Du skal svare med NØYAKTIG 3 ideer i «ideer»-lista — ikke to, ikke fire.
 Foreslå 3 NYE ideer som gjenbruker noe han allerede har (data, kunder, kode eller distribusjon).
 Ikke gjenta ideer han allerede har. Alt på norsk. Score 0-100 = hvor godt den passer ham spesifikt.
 Vær konkret — «AI-plattform for bedrifter» er ikke en idé, det er en floskel.`,
@@ -161,10 +165,16 @@ Vær konkret — «AI-plattform for bedrifter» er ikke en idé, det er en flosk
       { maxTokens: 4000, effort: 'high' }
     );
 
+    // Antallet er ikke låst i skjemaet lenger, så vi sjekker det her.
+    const ideer = Array.isArray(forslag?.ideer) ? forslag.ideer.slice(0, 3) : [];
+    if (!ideer.length) {
+      return res.status(502).json({ feil: 'Claude svarte uten forslag. Prøv igjen.' });
+    }
+
     // Lagres direkte, merket som KI-generert så de er lette å skille fra hans egne.
     const lagt = await sbInsert(
       'bedrift_ideer',
-      forslag.ideer.map((i) => ({ ...i, status: 'ide', kilde: 'claude' }))
+      ideer.map((i) => ({ ...i, status: 'ide', kilde: 'claude' }))
     );
     res.json({ lagt_til: lagt.length, ideer: lagt });
   } catch (e) {
