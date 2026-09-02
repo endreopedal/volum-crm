@@ -108,10 +108,12 @@ const SKJEMA_FORSLAG = {
   required: ['ideer'],
   properties: {
     ideer: {
-      // Ingen minItems/maxItems: Anthropic sitt structured-output-skjema godtar bare
-      // minItems 0 eller 1, og et hvilket som helst annet tall gir 400. Antallet
-      // står i prompten i stedet, og vi kutter/validerer i koden under.
-      type: 'array',
+      // minItems/maxItems, minimum og maximum står her fordi de sier hva vi vil ha,
+      // men Anthropic godtar dem ikke i et structured-output-skjema. rensSkjema()
+      // i lib/llm.js fjerner dem før kallet og legger kravet i «description» i
+      // stedet, så modellen ser det. Ingenting av det er håndhevet — det gjøres
+      // i koden under.
+      type: 'array', minItems: 3, maxItems: 3,
       items: {
         type: 'object',
         additionalProperties: false,
@@ -165,8 +167,15 @@ Vær konkret — «AI-plattform for bedrifter» er ikke en idé, det er en flosk
       { maxTokens: 4000, effort: 'high' }
     );
 
-    // Antallet er ikke låst i skjemaet lenger, så vi sjekker det her.
-    const ideer = Array.isArray(forslag?.ideer) ? forslag.ideer.slice(0, 3) : [];
+    // Skjemaet håndhever hverken antall eller tallgrenser, så vi gjør det her.
+    const klem = (v, lav, hoy) => Math.min(hoy, Math.max(lav, Math.round(Number(v) || 0)));
+    const ideer = (Array.isArray(forslag?.ideer) ? forslag.ideer : [])
+      .slice(0, 3)
+      .map((i) => ({
+        ...i,
+        score: klem(i.score, 0, 100),
+        investering_nok: Math.max(0, Math.round(Number(i.investering_nok) || 0))
+      }));
     if (!ideer.length) {
       return res.status(502).json({ feil: 'Claude svarte uten forslag. Prøv igjen.' });
     }

@@ -6,7 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
-    "import": "node importer.js"
+    "import": "node importer.js",
+    "sjekk": "node sjekk-skjema.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.121.0",
