@@ -32,7 +32,7 @@ function Founders() {
   if (laster) return <SkjelettSide tall={2} kort={2} />;
   if (feil) return <Feil melding={feil} paNytt={hentPaNytt} />;
 
-  const { statistikk: s, episoder, perAar, klar, mangler } = data;
+  const { statistikk: s, episoder, perAar, klar, mangler, modell } = data;
 
   return (
     <>
@@ -40,6 +40,7 @@ function Founders() {
             under="Hele podcasten ligger som søkbare vektorer. Spørsmålet ditt finner de mest relevante utdragene, og Claude svarer med episodehenvisning.">
         <Lapp type="inf">{n(s.episoder)} episoder</Lapp>
         <Lapp type="inf">{n(s.chunks)} biter</Lapp>
+        {modell && <Lapp>{modell}</Lapp>}
       </Topp>
 
       {!klar && (
@@ -70,6 +71,7 @@ function Founders() {
         </div>
         <div className="kort-hint" style={{ marginTop: 10, marginBottom: 0 }}>
           Cmd/Ctrl + Enter sender. Svaret bygger kun på ekte utdrag — finner den ikke svaret, sier den det.
+          {modell && <> Svarene skrives av <code>{modell}</code>.</>}
         </div>
       </Kort>
 

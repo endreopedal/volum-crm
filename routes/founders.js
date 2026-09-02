@@ -5,7 +5,7 @@
 // De 448 episodene og 11 000 chunkene ligger allerede i podcast_episodes / podcast_chunks.
 const express = require('express');
 const { sbSql, sbRpc, sbSelect } = require('../lib/sb');
-const { spor, embed, harClaude, harEmbedding } = require('../lib/llm');
+const { spor, embed, harClaude, harEmbedding, MODELL_FOUNDERS } = require('../lib/llm');
 const { svarFeil } = require('../lib/feil');
 
 const router = express.Router();
@@ -40,6 +40,7 @@ router.get('/', async (_req, res) => {
       episoder,
       perAar,
       klar: harClaude() && harEmbedding(),
+      modell: MODELL_FOUNDERS,
       mangler: [
         !harEmbedding() && 'OPENAI_API_KEY (embeddings for søk)',
         !harClaude() && 'ANTHROPIC_API_KEY (Claude for svar)'
@@ -76,12 +77,14 @@ router.post('/spor', async (req, res) => {
 
     const svar = await spor(SYSTEM, `Spørsmål: ${sporsmal}\n\nUtdrag fra episodene:\n\n${kontekst}`, {
       maxTokens: 3000,
-      effort: 'high'
+      effort: 'high',
+      modell: MODELL_FOUNDERS
     });
 
     res.json({
       sporsmal,
       svar,
+      modell: MODELL_FOUNDERS,
       kilder: treff.map((t) => ({
         episode: t.episode_title,
         dato: t.episode_date,
